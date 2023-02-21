@@ -1,35 +1,28 @@
-function  [idqd_hist, happiness_discount_hist] = simulBan(figID, isCaseBan, nWeeks, iI, iq_min, alp_min,  dPc, donate_ratio,rv)
+function  [idqd_hist, happiness_discount_hist] = simulBan_v2(figID, isCaseBan, nWeeks, iI, iq_min, alp_min,  dPc, pg_r, rv)
             
     damper_factor = 0.3; % no damper if 1 => Affects Mean recovery time / stability
     consumption_reduction = 0.7; % no reduction if 1 => Affects Mean recovery time
-    government_helps = 0; %Bool => Poor suffers if goverment does not help
 
     %
     % Unpack rvs
     %
-    weeks_to_recover= rv.weeks_to_recover_samp; % when 100% selling secured
     idQd= rv.idQd_samp;                         % individual repair quantity
-    dQd_basic = rv.dQd_basic_samp;              % individual basic living cost increase
-    dQd_basic = 0; %%% 230219
     dPd= rv.dPd_samp;                   % price increase due to supply chain disruption
     SupSlope=  rv.SupSlope_samp;        % individual supply slope
     iDemSlope=  rv.iDemSlope_samp;      % individual demand slope    
-    nhouse = length(iI);
-    %dPpg= rv.dPpg_samp;                 % price increase due to gauging
-    dPpg = 0;
-    dQh= rv.dQh_samp;                   % quantity increase due to hoarding
+    nPop = length(iI);
 
     %
     % Original (Predisaster) Quantity demand
     %
     
     P=1; % price
-    nPop = length(iI); % population    
-    minqID = 1; addqID = 2;
+    minqID = 1; addqID = 2; lossqID = 3;
 
-    iq = zeros(2,nPop); % individual demands
+    iq = zeros(3,nPop); % individual demands
     iq(minqID,:) = iq_min; % basic living
     iq(addqID,:) = alp_min * (iI - iq_min*P); % additional
+    %%%%%%%%%%%%%230221: From making loss additive, no increase in basic costs
     tqo = sum(iq,"all"); % q represents non-normalized quantity, Q is normalized qnatity  
     
     % 
@@ -43,13 +36,13 @@ function  [idqd_hist, happiness_discount_hist] = simulBan(figID, isCaseBan, nWee
     % Increased demand after disaster1 - Basic demand
     %     
     
-    weeks_to_recover = round(weeks_to_recover);% when post-disaster selling ratio is 100%
+% % %     weeks_to_recover = round(weeks_to_recover);% when post-disaster selling ratio is 100%
 
     % 
     % Increased demand after disaster1 - Repair cost
     % 
     
-    idqd = iq(2,:).*idQd; % REPAIR COST ---- deducted every week
+    idqd = iq(addqID,:).*idQd; % REPAIR COST ---- deducted every week
     
     %
     % Hoarding 
@@ -78,11 +71,11 @@ function  [idqd_hist, happiness_discount_hist] = simulBan(figID, isCaseBan, nWee
         % WEEK nw - Post-disaster demand increase
         %
         
-        if nw<weeks_to_recover
-            iqd(1,:) = iq(1,:).*(1+dQd_basic);    % TODO: when is this recovered?
-        else
-            iqd(1,:) = iq(1,:).*(1);               % survival demand
-        end
+% %         if nw<weeks_to_recover
+% %             iqd(1,:) = iq(1,:).*(1+dQd_basic);    % TODO: when is this recovered?
+% %         else
+% %             iqd(1,:) = iq(1,:).*(1);               % survival demand
+% %         end
 
         iqd(2,:) = iq(2,:)*consumption_reduction + idqd;        % happiness + restoration demand(=unmet amount from previous stage) 
                                               % priority: survival > restoration > happiness 
@@ -357,6 +350,6 @@ function  [idqd_hist, happiness_discount_hist] = simulBan(figID, isCaseBan, nWee
     ylim([0.5,1.5]);
     subplot(4,1,3); bar(sum(happiness_discount_hist,2),'facealpha',0.3)
     xlabel('weeks'); ylabel('lack'); legend('P','Q')
-    subplot(4,1,4); plot(sum(idqd_hist(:,:)'==0)/nhouse); ylim([0,1])
+    subplot(4,1,4); plot(sum(idqd_hist(:,:)'==0)/nPop); ylim([0,1])
     xlabel('weeks'); ylabel('ratio of recovered households')
     disp("")
