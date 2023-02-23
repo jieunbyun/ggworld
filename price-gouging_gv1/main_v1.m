@@ -19,6 +19,7 @@ clear all;
 rng(1);
 
 N = 1e3; % population
+N = 5;
 
 %
 % Some parameters
@@ -110,14 +111,14 @@ R2D=load('R2D_data/R2Ddata.mat');
 
 for ii = 1:nSample
     
-    idx = randsample(length(R2D.myWeeklyIncome),N); % random permuntation
-    iI = R2D.myWeeklyIncome(idx)'/mean(R2D.myWeeklyIncome);% TODO: Do we need minimum wage
-    iI(iI<iq_min*P)=iq_min*P; % minimum wage    
+    idx = randsample(length(R2D.myWeeklyIncome),N); % random permutation
+    iI = R2D.myWeeklyIncome(idx)'/mean(R2D.myWeeklyIncome);% TODO: Do we need minimum wage: (230223) Reflected in R2D data
     
     idqd_samp = normrnd(R2D.myMeanRepCost(idx), R2D.myStdRepCost(idx))';
-    rv.idQd_samp = idqd_samp./R2D.myWeeklyIncome(idx)';
+%     rv.idQd_samp = idqd_samp./R2D.myWeeklyIncome(idx)';
+    rv.idQd_samp = idqd_samp./mean(R2D.myWeeklyIncome); % (230223) this seems to be a correct way of normalisation
     rv.idQd_samp(rv.idQd_samp<0)=0;    
-    rv.idQd_samp(rv.idQd_samp>25)=25;    
+%     rv.idQd_samp(rv.idQd_samp>25)=25;   % (230223) Do we need this? 
     
     %
     % gen samples of agents [1 x nPoP]
