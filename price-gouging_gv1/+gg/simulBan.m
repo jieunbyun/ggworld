@@ -1,4 +1,4 @@
-function  [idqd_hist, happiness_discount_hist] = simulBan_v5(figID, isCaseBan, nWeeks, iI, iq_min, alp_min,  dPc, donate_ratio,rv)
+function  [idqd_hist, happiness_discount_hist] = simulBan(figID, isCaseBan, nWeeks, iI, iq_min, alp_min,  dPc, donate_ratio,rv)
             
     damper_factor = 0.3; % no damper if 1 => Affects Mean recovery time / stability
     consumption_reduction = 0.7; % no reduction if 1 => Affects Mean recovery time
