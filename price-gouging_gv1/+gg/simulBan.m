@@ -18,6 +18,7 @@ function  [idqd_hist, happiness_discount_hist] = simulBan(figID, isCaseBan, nWee
     %dPpg= rv.dPpg_samp;                 % price increase due to gauging
     dPpg = 0;
     dQh= rv.dQh_samp;                   % quantity increase due to hoarding
+    dQh = 0; % (230223) at the moment, not considered
 
     %
     % Original (Predisaster) Quantity demand
