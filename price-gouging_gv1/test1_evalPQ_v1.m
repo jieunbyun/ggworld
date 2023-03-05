@@ -12,13 +12,13 @@ Evaluation price and quantity
 clear all; 
 rng(1);
 
-% load("test_data/evalPQ.mat")
+load("test_data/evalPQ.mat")
 % load("test_data/evalPQ_highLoss.mat")
 % load("test_data/evalPQ_highDQ.mat")
 % load("test_data/evalPQ_highTql.mat")
 % load("test_data/evalPQ_highDPdb.mat")
 % load("test_data/evalPQ_highDPdl.mat")
-load("test_data/evalPQ_highSupSlopel.mat")
+% load("test_data/evalPQ_highSupSlopel.mat")
 
 %% Evaluation of price
 loss_rem_hist = zeros(0,nPop); % History of remaining loss 
@@ -38,7 +38,7 @@ while sum(loss_rem) > 0
     dQt_b = max([0, dQd_b*(1-(iWeek-1)/weeks_to_recover)]);
     Prd_b = SupSlope_b * (1+dQt_b -1) + dPt_b +1; % Increased percentage price after disasters
     
-    prd_b_pop = Prd_b*q; % actual prices for basic living for each population
+    prd_b_pop = Prd_b*q*(1+dQt_b); % actual prices for basic living for each population
     iIncome_remain = iIncome_remain - prd_b_pop;
     qb_dfc_inds = (iIncome_remain<0);
     
