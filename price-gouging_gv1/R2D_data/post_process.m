@@ -26,6 +26,11 @@ lat =table2array( info(ResID,2));
 lon = table2array(info(ResID,3));
 buildingValue = table2array(info(ResID,7)); 
 numStory = table2array(info(ResID,5)); 
+occType = table2cell(info(ResID,9));
+planArea = table2array(info(ResID,4)); 
+
+RES1_planArea_mean = mean( planArea( strcmp(occType, 'RES1') ) );
+
 % Let us assume that (1) replacement cost is proportional to building value (2) income is proportional to the building value
 %
 % Histogram of repiar cost
@@ -57,10 +62,23 @@ myBuildingValue=zeros(sum(numStory),1);
 idx=0;
 for i=1:length(ResID)
     for j=1:numStory(i)
-        idx=idx+1;
-        myMeanRepCost(idx) = meanRepCost(i)/numStory(i);
-        myStdRepCost(idx) = stdRepCost(i)/numStory(i);
-        myBuildingValue(idx) = buildingValue(i)/numStory(i);
+        
+        switch occType{i}
+            case 'RES3'
+                numHousePerStory = ceil( planArea(i) / RES1_planArea_mean );
+                for k = 1:numHousePerStory
+                    idx=idx+1;
+                    myMeanRepCost(idx) = meanRepCost(i)/numStory(i)/numHousePerStory;
+                    myStdRepCost(idx) = stdRepCost(i)/numStory(i)/numHousePerStory;
+                    myBuildingValue(idx) = buildingValue(i)/numStory(i)/numHousePerStory;
+                end
+
+            otherwise
+                idx=idx+1;
+                myMeanRepCost(idx) = meanRepCost(i);
+                myStdRepCost(idx) = stdRepCost(i);
+                myBuildingValue(idx) = buildingValue(i);
+        end         
     end
 end
 
@@ -106,7 +124,7 @@ myWeeklyIncome(myBuildingValue_sInd) = myWeeklyIncome_unsorted;
 myWeeklyIncome(myWeeklyIncome<income_perc_v(1)) = income_perc_v(1);
 
 figure;
-plot( myBuildingValue, log(myWeeklyIncome), '.' )
+plot( myBuildingValue, myWeeklyIncome, '.' )
 figure;
 plot( log(myMeanRepCost), log(myWeeklyIncome), '.' )
 % corr(log(myMeanRepCost), log(myWeeklyIncome))=0.2043
@@ -134,6 +152,7 @@ x2 = xmin2*(1-rand(nsamp,1)).^(-1/(alpha2-1));
 % figure(6);
 % scatter(U1,U2);
 %}
+
 
 
 save('R2Ddata','myMeanRepCost','myStdRepCost','myWeeklyIncome');
