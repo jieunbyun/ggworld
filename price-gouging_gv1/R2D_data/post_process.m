@@ -123,8 +123,7 @@ myWeeklyIncome = zeros(size(myWeeklyIncome_unsorted));
 myWeeklyIncome(myBuildingValue_sInd) = myWeeklyIncome_unsorted;
 myWeeklyIncome(myWeeklyIncome<income_perc_v(1)) = income_perc_v(1);
 
-figure;
-plot( myBuildingValue, myWeeklyIncome, '.' )
+te
 figure;
 plot( log(myMeanRepCost), log(myWeeklyIncome), '.' )
 % corr(log(myMeanRepCost), log(myWeeklyIncome))=0.2043
