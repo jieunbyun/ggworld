@@ -11,13 +11,13 @@ Add ban to test1
 clear all; 
 rng(1);
 
-% load("test_data/evalPQ.mat")
+load("test_data/evalPQ.mat")
 % load("test_data/evalPQ_highLoss.mat")
 % load("test_data/evalPQ_highDQ.mat")
 % load("test_data/evalPQ_highTql.mat")
 % load("test_data/evalPQ_highDPdb.mat")
 % load("test_data/evalPQ_highDPdl.mat") % Does not run: sigular point
-load("test_data/evalPQ_highSupSlopel.mat")
+% load("test_data/evalPQ_highSupSlopel.mat")
 
 %% Evaluation of price
 % For record
@@ -59,7 +59,8 @@ while sum(loss_rem) > 0
     end
 
    
-    prd_b_pop = Prd_b*q*(1+dQt_b_sup); % actual prices for basic living for each population: When dQt_b_sup < dQt_b, proportional distribution among populations is assumed (which is not far from the alleged random distribution).
+%     prd_b_pop = Prd_b*q*(1+dQt_b_sup); % actual prices for basic living for each population: When dQt_b_sup < dQt_b, proportional distribution among populations is assumed (which is not far from the alleged random distribution).
+    prd_b_pop = Prd_b*q*(1+dQt_b); % Not to double count effect of supply lack
     iIncome_remain = iIncome_remain - prd_b_pop;
     qb_dfc_inds = (iIncome_remain<0);
     
