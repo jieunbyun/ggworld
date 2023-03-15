@@ -36,6 +36,8 @@ loss_rem = myLoss;
 iWeek = 0;
 pcap_b = 0.2; % Price cap for basic living. If less than "dPd_b", production decreases.
 pcap_l = 0.2; % Price cap for repair.
+hoarding = 0.2; % --> increases "Qb_lack"
+donation = 0.2; 
 while any(loss_rem > 0 )
     iWeek = iWeek+1;
 
@@ -49,6 +51,7 @@ while any(loss_rem > 0 )
     if Prd_b > (1+pcap_b)
         Prd_b_nat = Prd_b; 
         Prd_b = (1+pcap_b);
+        dQt_b = dQt_b + hoarding;
 
         dQt_b_sup = (pcap_b - dPd_b) / SupSlope_b;
         Qb_lack = max([0, dQt_b-dQt_b_sup]); 
@@ -96,6 +99,16 @@ while any(loss_rem > 0 )
     ircv_l = min([iIncome_remain; ipr_l]); % recovered loss
     iRcv_l = ircv_l / Prd_l; % recovered loss - normalised
     loss_rem = max( [loss_rem - iRcv_l; zeros(size(loss_rem))]);
+
+    if donation > 0
+        iPopRecovered = ~(loss_rem > 0);
+        iNetIncome = iIncome_remain(iPopRecovered);
+        iNetIncome(iNetIncome<0) = 0;
+        iDonateTotal = donation * sum( iNetIncome );
+        
+        loss_rem(~iPopRecovered) = loss_rem(~iPopRecovered) - iDonateTotal / sum(~iPopRecovered);
+        loss_rem = max( [loss_rem; zeros(size(loss_rem))] );
+    end
     
     % % Record
     loss_rem_hist = [loss_rem_hist; loss_rem];
