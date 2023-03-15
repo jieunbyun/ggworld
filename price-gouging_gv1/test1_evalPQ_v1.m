@@ -9,7 +9,7 @@ Evaluation price and quantity
 %}
 
 
-clear all; 
+% clear all; 
 rng(1);
 
 load("test_data/evalPQ.mat")

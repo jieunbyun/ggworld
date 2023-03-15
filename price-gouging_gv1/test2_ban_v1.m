@@ -8,7 +8,7 @@ Last udpate: 5 Mar 2023 - JB
 Add ban to test1 
 %}
 
-clear all; 
+% clear all; 
 rng(1);
 
 load("test_data/evalPQ.mat")
@@ -36,7 +36,7 @@ loss_rem = myLoss;
 iWeek = 0;
 pcap_b = 0.2; % Price cap for basic living. If less than "dPd_b", production decreases.
 pcap_l = 0.2; % Price cap for repair.
-while sum(loss_rem) > 0
+while any(loss_rem > 0 )
     iWeek = iWeek+1;
 
     iIncome_remain = myWeeklyIncome;
@@ -46,9 +46,9 @@ while sum(loss_rem) > 0
     dQt_b = max([0, dQd_b*(1-(iWeek-1)/weeks_to_recover)]);
     Prd_b = SupSlope_b * (1+dQt_b -1) + dPt_b +1; % Increased percentage price after disasters
 
-    if Prd_b > pcap_b
+    if Prd_b > (1+pcap_b)
         Prd_b_nat = Prd_b; 
-        Prd_b = pcap_b;
+        Prd_b = (1+pcap_b);
 
         dQt_b_sup = (pcap_b - dPd_b) / SupSlope_b;
         Qb_lack = max([0, dQt_b-dQt_b_sup]); 
@@ -75,10 +75,10 @@ while sum(loss_rem) > 0
     dQd_l = sum(loss_rem)/tq_l;
     Prd_l = SupSlope_l * (1+dQd_l -1) + dPd_l +1; % Increased percentage price after disasters - repair
     
-    if Prd_l > pcap_l
+    if Prd_l > (1+pcap_l)
         
         Prd_l_nat = Prd_l; 
-        Prd_l = pcap_l;
+        Prd_l = 1+pcap_l;
 
         dQd_l_sup = (pcap_l - dPd_l) / SupSlope_l;
         Ql_lack = max([0, dQd_l-dQd_l_sup]); 
@@ -95,7 +95,7 @@ while sum(loss_rem) > 0
     end
     ircv_l = min([iIncome_remain; ipr_l]); % recovered loss
     iRcv_l = ircv_l / Prd_l; % recovered loss - normalised
-    loss_rem = loss_rem - iRcv_l;
+    loss_rem = max( [loss_rem - iRcv_l; zeros(size(loss_rem))]);
     
     % % Record
     loss_rem_hist = [loss_rem_hist; loss_rem];
