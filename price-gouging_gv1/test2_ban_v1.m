@@ -4,7 +4,7 @@ Development in progress
 
 %{
 Created: 4 Mar 2023 - JB
-Last udpate: 5 Mar 2023 - JB
+Last udpate: 16 Mar 2023 - JB
 Add ban to test1 
 %}
 
@@ -18,6 +18,10 @@ load("test_data/evalPQ.mat")
 % load("test_data/evalPQ_highDPdb.mat")
 % load("test_data/evalPQ_highDPdl.mat") % Does not run: sigular point
 % load("test_data/evalPQ_highSupSlopel.mat")
+
+
+q_b_fun = @(incomes) q_min + alp_min * (incomes - q_min);
+
 
 %% Evaluation of price
 % For record
@@ -34,10 +38,11 @@ Prl_nat_hist = zeros(0,1); % (Normalised) Price increase if there had been no ba
 q = q_min + alp_min * (myWeeklyIncome - q_min); % individual demands
 loss_rem = myLoss;
 iWeek = 0;
-pcap_b = 0.2; % Price cap for basic living. If less than "dPd_b", production decreases.
-pcap_l = 0.2; % Price cap for repair.
-hoarding = 0.2; % --> increases "Qb_lack"
-donation = 0.2; 
+pcap_b = 0.1; % Price cap for basic living. If less than "dPd_b", production decreases.
+% pcap_l = 0.101; % Price cap for repair
+pcap_l = 0.11;
+hoarding = 0; % --> increases "Qb_lack"
+donation = 0; 
 while any(loss_rem > 0 )
     iWeek = iWeek+1;
 

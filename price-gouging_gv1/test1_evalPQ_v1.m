@@ -4,7 +4,7 @@ Development in progress
 
 %{
 Created: 23 Feb 2023 - JB
-Last udpate: 26 Feb 2023 - JB
+Last udpate: 16 March 2023 - JB
 Evaluation price and quantity
 %}
 
