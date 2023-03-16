@@ -1,13 +1,25 @@
-function result = simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, pops_income, pops_loss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation )
+function result = simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, pops_income, pops_loss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg )
 
 if nargin < 11
     pcap_b = inf; % no cap
-elseif nargin < 12
+end
+if nargin < 12
     pcap_l = inf; % no cap
-elseif nargin < 13
+end
+if nargin < 13
     hoarding = 0; % no hoarding considered
-elseif nargin < 14
+end
+if nargin < 14
     donation = 0; % no donation considered
+end
+if nargin < 15
+    dPd_b_gg = 0; % price-gouging not considered
+end
+if nargin < 16
+    dPd_l_gg = 0; 
+end
+if nargin < 17
+    nWeek_gg = 0;
 end
 
 
@@ -30,8 +42,9 @@ q_b_normal = q_b_fun(pops_income);
 
 loss_rem = pops_loss;
 iWeek = 0;
+nWeek_max = 500;
 
-while any(loss_rem > 0 )
+while any(loss_rem > 0 ) && (iWeek < nWeek_max)
     iWeek = iWeek+1;
 
     iIncome_remain = pops_income;
@@ -39,7 +52,7 @@ while any(loss_rem > 0 )
     % % (1) basic living first
     dPt_b = max([0, dPd_b*(1-(iWeek-1)/weeks_to_recover)]);
     dQt_b = max([0, dQd_b*(1-(iWeek-1)/weeks_to_recover)]);
-    Prd_b = SupSlope_b * (1+dQt_b -1) + dPt_b +1; % Increased percentage price after disasters
+    Prd_b = SupSlope_b * (1+dQt_b -1) + dPt_b +1; % Increased percentage price after disasters    
 
     if Prd_b > (1+pcap_b)
         Prd_b_nat = Prd_b; 
@@ -48,7 +61,13 @@ while any(loss_rem > 0 )
 
         dQt_b_sup = (pcap_b - dPd_b) / SupSlope_b; % Supply lack for basic living is not considered for price calculation (Not to double count effect of supply lack)
         Qb_lack = max([0, dQt_b-dQt_b_sup]); 
+
     else        
+
+        if iWeek < nWeek_gg % price-gouging
+           Prd_b = min([Prd_b + dPd_b_gg, 1+pcap_b]); 
+        end
+
         Prd_b_nat = Prd_b;
         Qb_lack = 0;
     end
@@ -79,6 +98,10 @@ while any(loss_rem > 0 )
         Prd_l_nat = Prd_l;
         dQd_l_sup = dQd_l;
         Ql_lack = 0;
+
+        if iWeek < nWeek_gg % price-gouging
+            Prd_l = min([Prd_l + dPd_l_gg, 1+pcap_l]); 
+        end
     end
 
     ipr_l = loss_rem*Prd_l;
@@ -96,7 +119,7 @@ while any(loss_rem > 0 )
         iNetIncome(iNetIncome<0) = 0;
         iDonateTotal = donation * sum( iNetIncome );
         
-        loss_rem(~iPopRecovered) = loss_rem(~iPopRecovered) - iDonateTotal / sum(~iPopRecovered);
+        loss_rem(~iPopRecovered) = loss_rem(~iPopRecovered) - iDonateTotal / sum(~iPopRecovered) / Prd_l;
         loss_rem = max( [loss_rem; zeros(size(loss_rem))] );
     end
     
@@ -110,9 +133,15 @@ while any(loss_rem > 0 )
     Prl_nat_hist = [Prl_nat_hist; Prd_l_nat];
 end
 
+
 nWeekToRecover_pop = zeros(nPop,1);
 for ii = 1:nPop
-    nWeekToRecover_pop(ii) = find( ~(loss_rem_hist(:,ii)>0), 1 ) - 1;
+    iWeekToRecover = find( ~(loss_rem_hist(:,ii)>0), 1 ) - 1;
+    if ~isempty( iWeekToRecover )
+        nWeekToRecover_pop(ii) = iWeekToRecover;
+    else
+        nWeekToRecover_pop(ii) = nWeek_max;
+    end
 end
 
 
@@ -125,4 +154,8 @@ result.Ql_lack_hist = Ql_lack_hist;
 result.Prl_nat_hist = Prl_nat_hist;
 result.nWeekToRecover_pop = nWeekToRecover_pop;
 
-fprintf( 'Weeks for all to recover: %4d\n', max(nWeekToRecover_pop) )
+if all(~loss_rem)
+    fprintf( 'Weeks for all to recover: %4d\n', max(nWeekToRecover_pop) )
+else
+    disp( 'There are people who did not recover fully.' )
+end
