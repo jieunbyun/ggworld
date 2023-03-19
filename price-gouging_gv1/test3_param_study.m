@@ -67,8 +67,8 @@ result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks
 % Ban is favoured when income inequality is high
 myWeeklyIncome_ineq = myWeeklyIncome; myWeeklyIncome_ineq(2:end) = 2*myWeeklyIncome(2:end);
 myLoss_ineq = myLoss; myLoss_ineq(2:end) = 2*myLoss(2:end); 
-result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
-result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, inf, inf, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
+result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
+result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, inf, inf, hoarding, donation );
 
 
 %% Hoarding
@@ -109,7 +109,7 @@ for iPopInd = 1:nPop
     iNWeekRec_noban = nWeekRec_noban(:,iPopInd);
     nWeekRec_noban_avg(iPopInd) = mean(iNWeekRec_noban(iNWeekRec_noban>0));
 end
-iPopInd = 1;
+iPopInd = 5;
 figure;
 hist( [nWeekRec_ban(:,iPopInd), nWeekRec_noban(:,iPopInd)] )
 % --> Ban controls worst scenarios (for all income levels).
