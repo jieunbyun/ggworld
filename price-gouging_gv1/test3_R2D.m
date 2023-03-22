@@ -55,11 +55,15 @@ myLoss_sample1 = gg.sampleLoss( myLoss_mean, myLoss_std, myMaxLoss );
 result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
 result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, inf, inf, hoarding, donation );
 % --> The difference of the number of recovery weeks increases with (1) the upper cap of loss and (2) SupSlope_l.
+figure;
+plot( myWeeklyIncome, result_ban.nWeekToRecover_pop, '.' )
+figure;
+plot( myWeeklyIncome, result_noban.nWeekToRecover_pop, '.' )
 
 % Ban is not favoured when pcap is too stringent compared to dPd
 pcap_l_less = 0.1; dPd_l_high = 0.595;
 result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l_high, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, pcap_b, pcap_l_less, hoarding, donation );
-% --> The number of recovery weeks with ban in place starts increasing when (pcap_l - dPd_l) / SupSlope_l > 0.98.
+% --> The number of recovery weeks with ban in place starts increasing when (pcap_l - dPd_l) / SupSlope_l < -0.98.
 
 % Ban is not effective when there is not much loss
 myLoss_less = 0.1 * myLoss_sample1;
@@ -67,15 +71,33 @@ result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_t
 result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_less, q_b_fun, tq_l, inf, inf, hoarding, donation );
 
 % Ban is favoured when price gouging is high
-dPd_b_gg = 0.5; dPd_l_gg = 0.5; nWeek_gg = 30; % price-gouging rate 
+dPd_b_gg = 0.5; dPd_l_gg = 0.5; nWeek_gg = 20; % price-gouging rate 
 result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
 result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, inf, inf, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
 % <-- the difference is quite sensitive to "q_min"
 
 % Ban is favoured when income inequality is high
-incomeNonMinInds = ( myWeeklyIncome > min(myWeeklyIncome) );
-myWeeklyIncome_ineq = myWeeklyIncome; myWeeklyIncome_ineq( incomeNonMinInds ) = 2*myWeeklyIncome( incomeNonMinInds );
-myLoss_ineq = myLoss_sample1; myLoss_ineq( incomeNonMinInds ) = 2*myLoss_ineq( incomeNonMinInds ); 
+income_thre = mean( myWeeklyIncome );
+myWeeklyIncome_ineq = zeros(1,nPop);
+% myLoss_ineq = zeros(1,nPop);
+wealthyIncome_sum = 0;
+for iPopInd = 1:nPop
+    iIncome = myWeeklyIncome(iPopInd);
+    if iIncome < income_thre+0.01
+        iIncome_ineq = max([min(myWeeklyIncome), iIncome * 1.5]);
+        myWeeklyIncome_ineq(iPopInd) = iIncome_ineq;
+%         myLoss_ineq(iPopInd) = myLoss_sample1(iPopInd) * iIncome_ineq/iIncome;
+    else
+        wealthyIncome_sum = wealthyIncome_sum + iIncome;
+    end
+end
+wealthy_coeff = (sum(myWeeklyIncome) - sum(myWeeklyIncome_ineq) ) / wealthyIncome_sum;
+myWeeklyIncome_ineq(~myWeeklyIncome_ineq) = myWeeklyIncome(~myWeeklyIncome_ineq) * wealthy_coeff;
+% myLoss_ineq(~myWeeklyIncome_ineq) = myLoss_sample1(~myWeeklyIncome_ineq) * wealthy_coeff;
+
+% incomeNonMinInds = ( myWeeklyIncome > min(myWeeklyIncome) );
+% myWeeklyIncome_ineq = myWeeklyIncome; myWeeklyIncome_ineq( incomeNonMinInds ) = 2*myWeeklyIncome( incomeNonMinInds );
+% myLoss_ineq = myLoss_sample1; myLoss_ineq( incomeNonMinInds ) = 2*myLoss_ineq( incomeNonMinInds ); 
 result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
 result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, inf, inf, hoarding, donation );
 
@@ -85,7 +107,9 @@ hoarding = 0.2;
 result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
 result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, inf, inf, hoarding, donation );
 % --> increases "Qb_lack"
-
+% TODO: Compare Qb_lack: 
+% sum( result_ban.Qb_lack_hist )
+% sum( result_noban.Q_b_def_hist(:) )
 
 %% Donation
 donation = 0.1;
@@ -126,6 +150,8 @@ end
 iPopInd = 9;
 figure;
 hist( [nWeekRec_ban(:,iPopInd), nWeekRec_noban(:,iPopInd)] )
+figure;
+hist( [nWeekRec_ban_avg(:), nWeekRec_noban_avg(:)] )
 % --> Ban controls worst scenarios. The effect of variance reduction does
 % not depend on income levels, but it does on the average sample value (the
 % variance reduction is more prominent when the average is high, i.e. the

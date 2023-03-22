@@ -92,7 +92,7 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
         Prd_l_nat = Prd_l; 
         Prd_l = 1+pcap_l;
 
-        dQd_l_sup = (pcap_l - dPd_l) / SupSlope_l;
+        dQd_l_sup = max([-0.99, (pcap_l - dPd_l) / SupSlope_l]);
         Ql_lack = max([0, dQd_l-dQd_l_sup]); 
     else
         Prd_l_nat = Prd_l;
