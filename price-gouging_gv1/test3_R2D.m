@@ -98,8 +98,8 @@ myWeeklyIncome_ineq(~myWeeklyIncome_ineq) = myWeeklyIncome(~myWeeklyIncome_ineq)
 % incomeNonMinInds = ( myWeeklyIncome > min(myWeeklyIncome) );
 % myWeeklyIncome_ineq = myWeeklyIncome; myWeeklyIncome_ineq( incomeNonMinInds ) = 2*myWeeklyIncome( incomeNonMinInds );
 % myLoss_ineq = myLoss_sample1; myLoss_ineq( incomeNonMinInds ) = 2*myLoss_ineq( incomeNonMinInds ); 
-result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
-result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_ineq, q_b_fun, tq_l, inf, inf, hoarding, donation );
+result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_sample1, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
+result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_sample1, q_b_fun, tq_l, inf, inf, hoarding, donation );
 
 
 %% Hoarding
@@ -156,3 +156,5 @@ hist( [nWeekRec_ban_avg(:), nWeekRec_noban_avg(:)] )
 % not depend on income levels, but it does on the average sample value (the
 % variance reduction is more prominent when the average is high, i.e. the
 % most affected populations).
+
+save outputs/test3_R2D.mat
