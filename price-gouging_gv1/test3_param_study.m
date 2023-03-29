@@ -112,4 +112,7 @@ end
 iPopInd = 1;
 figure;
 hist( [nWeekRec_ban(:,iPopInd), nWeekRec_noban(:,iPopInd)] )
+grid on
 % --> Ban controls worst scenarios (for all income levels).
+
+% save outputs/test3_param_study.mat
