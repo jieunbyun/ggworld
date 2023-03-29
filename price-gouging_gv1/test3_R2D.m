@@ -121,10 +121,21 @@ result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_t
 dPd_b_gg = 0.2; dPd_l_gg = 0.2; nWeek_gg = 10; % price-gouging rate 
 
 nSample = 1e3; % This takes some time.
+loss_pop = zeros(nSample,nPop);
 nWeekRec_ban = zeros(nSample,nPop);
 nWeekRec_noban = zeros(nSample,nPop);
+Qb_def_mag_ban = zeros(nSample, nPop); % magnitude (normalised)
+Qb_def_mag_noban = zeros(nSample, nPop);
+Qb_def_nWeek_ban = zeros(nSample, nPop); % time (number of weeks)
+Qb_def_nWeek_noban = zeros(nSample, nPop);
+Q_supply_lack_mag_Qb = zeros(nSample,1); % Lack due to supply lack so applies to ban only.
+Q_supply_lack_mag_Ql = zeros(nSample,1);
+Q_supply_lack_nWeek_Qb = zeros(nSample,1); % Lack due to supply lack so applies to ban only.
+Q_supply_lack_nWeek_Ql = zeros(nSample,1);
+
 for iSampInd = 1:nSample
     disp( ['[Sample ' num2str(iSampInd) '] ..'] )
+    rng(iSampInd) % To retreive sampling results
     iLoss = gg.sampleLoss( myLoss_mean, myLoss_std, myMaxLoss ); 
 
 %     iResult_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
@@ -134,8 +145,27 @@ for iSampInd = 1:nSample
     iResult_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, pcap_b, pcap_l );
     iResult_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, inf, inf );
 
+    % Results summary
+    loss_pop(iSampInd,:) = iLoss;
+
     nWeekRec_ban(iSampInd,:) = iResult_ban.nWeekToRecover_pop;
     nWeekRec_noban(iSampInd,:) = iResult_noban.nWeekToRecover_pop;
+
+    Qb_def_mag_ban(iSampInd,:) = sum(iResult_ban.Q_b_def_hist,1);
+    Qb_def_mag_noban(iSampInd,:) = sum(iResult_noban.Q_b_def_hist,1);
+
+    Qb_def_nWeek_ban(iSampInd,:) = gg.getLastNonZeroIndices( iResult_ban.Q_b_def_hist, 1 );
+    Qb_def_nWeek_noban(iSampInd,:) = gg.getLastNonZeroIndices( iResult_noban.Q_b_def_hist, 1 );
+
+    Q_supply_lack_mag_Qb(iSampInd) = sum( iResult_ban.Qb_lack_hist );
+    Q_supply_lack_mag_Ql(iSampInd) = sum( iResult_ban.Ql_lack_hist );
+
+    Q_supply_lack_nWeek_Qb(iSampInd) = find( iResult_ban.Qb_lack_hist > 0, 1, 'last' );
+    Q_supply_lack_nWeek_Ql(iSampInd) = find( iResult_ban.Ql_lack_hist > 0, 1, 'last' );
+
+    if ~rem( iSampInd, 100 )
+        save outputs/test3_R2D.mat
+    end
 
 end
 
