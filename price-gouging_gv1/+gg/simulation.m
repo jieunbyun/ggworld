@@ -92,7 +92,7 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
         Prd_l_nat = Prd_l; 
         Prd_l = 1+pcap_l;
 
-        dQd_l_sup = (pcap_l - dPd_l) / SupSlope_l;
+        dQd_l_sup = max([-0.99, (pcap_l - dPd_l) / SupSlope_l]);
         Ql_lack = max([0, dQd_l-dQd_l_sup]); 
     else
         Prd_l_nat = Prd_l;
@@ -122,6 +122,10 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
         loss_rem(~iPopRecovered) = loss_rem(~iPopRecovered) - iDonateTotal / sum(~iPopRecovered) / Prd_l;
         loss_rem = max( [loss_rem; zeros(size(loss_rem))] );
     end
+
+    if iWeek > 350
+        ddd = 1;
+    end
     
     % % Record
     loss_rem_hist = [loss_rem_hist; loss_rem];
@@ -131,6 +135,9 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
     Prb_nat_hist = [Prb_nat_hist; Prd_b_nat];
     Ql_lack_hist = [Ql_lack_hist; Ql_lack];
     Prl_nat_hist = [Prl_nat_hist; Prd_l_nat];
+
+    loss_rem(loss_rem<1) = 0;
+
 end
 
 

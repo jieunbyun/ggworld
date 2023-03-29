@@ -59,6 +59,8 @@ title('log-meanRepCost');
 myMeanRepCost=zeros(sum(numStory),1);
 myStdRepCost=zeros(sum(numStory),1);
 myBuildingValue=zeros(sum(numStory),1);
+myLat = zeros(sum(numStory),1);
+myLon = zeros(sum(numStory),1);
 idx=0;
 for i=1:length(ResID)
     for j=1:numStory(i)
@@ -71,6 +73,7 @@ for i=1:length(ResID)
                     myMeanRepCost(idx) = meanRepCost(i)/numStory(i)/numHousePerStory;
                     myStdRepCost(idx) = stdRepCost(i)/numStory(i)/numHousePerStory;
                     myBuildingValue(idx) = buildingValue(i)/numStory(i)/numHousePerStory;
+                    myLat(idx) = lat(i); myLon(idx) = lon(i);
                 end
 
             otherwise
@@ -78,6 +81,7 @@ for i=1:length(ResID)
                 myMeanRepCost(idx) = meanRepCost(i);
                 myStdRepCost(idx) = stdRepCost(i);
                 myBuildingValue(idx) = buildingValue(i);
+                myLat(idx) = lat(i); myLon(idx) = lon(i);
         end         
     end
 end
@@ -100,10 +104,11 @@ figure(3);
 histogram(log(((myBuildingValue))));
 xlabel('log-buildingValue');
 
-% figure(4);
-% geoscatter(lat,lon,5,log((myBuildingValue)),'.','SizeData',50);
-% colorbar(); set(gcf,'color','w');
-% title('log-buildingValue');
+figure(4);
+geoscatter(lat,lon,5,log((buildingValue)),'.','SizeData',50);
+colorbar(); set(gcf,'color','w');
+title('log-buildingValue');
+
 % 
 myWeeklyIncome = myBuildingValue/factor;
 figure(5);
@@ -123,10 +128,15 @@ myWeeklyIncome = zeros(size(myWeeklyIncome_unsorted));
 myWeeklyIncome(myBuildingValue_sInd) = myWeeklyIncome_unsorted;
 myWeeklyIncome(myWeeklyIncome<income_perc_v(1)) = income_perc_v(1);
 
-te
+figure(40);
+geoscatter(myLat,myLon,5,-log(myWeeklyIncome),'.','SizeData',50);
+colormap('copper'); colorbar(); set(gcf,'color','w');
+title('log-buildingValue');
+
 figure;
 plot( log(myMeanRepCost), log(myWeeklyIncome), '.' )
 % corr(log(myMeanRepCost), log(myWeeklyIncome))=0.2043
+plot( myMeanRepCost, myWeeklyIncome, '.' )
 
 
 disp(['log mean of monthlyIncome is ', num2str(mean(log((meanRepCost))))])
