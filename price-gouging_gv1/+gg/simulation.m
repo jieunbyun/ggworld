@@ -28,7 +28,7 @@ nPop = length(pops_income);
 
 loss_rem_hist = zeros(0,nPop); % Remaining loss 
 pr_b_def_hist = zeros(0,nPop); % Monetary deficit for basic living
-Q_b_def_hist = zeros(0,nPop); % (Normalised) Quantity deficit for basic living
+Q_b_def_hist = zeros(0,nPop); % (Normalised) Quantity deficit for basic living, incurred by insufficient income
 
 % % Matrices below become non-zero when price cap is activated % %
 Qb_lack_hist = zeros(0,1); % (Normalised) Quantity of supply lack for basic living
@@ -75,9 +75,14 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
     prd_b_pop = Prd_b*q_b_normal*(1+dQt_b); 
     iIncome_remain = iIncome_remain - prd_b_pop;
     qb_dfc_inds = (iIncome_remain<0);
-    
+       
     iQb_dfc = zeros(1,nPop); % Normalised quantity of basic living deficit
-    iQb_dfc(qb_dfc_inds) = abs(iIncome_remain(qb_dfc_inds) ./ prd_b_pop(qb_dfc_inds));
+    iQb_dfc(qb_dfc_inds) = abs(iIncome_remain(qb_dfc_inds) ./ prd_b_pop(qb_dfc_inds)); % This quantity reflects deficit 
+    
+    if Qb_lack > 0
+        iQb_dfc_byIncomeLack = sum(iQb_dfc.*q_b_normal) / sum(q_b_normal); % Although income is assumed to be consumed (to not overestimate ban's effect), quantity deficit by supply lack is quantified (to not overlook the supply lack issue).
+        Qb_lack = max([0, Qb_lack-iQb_dfc_byIncomeLack]); % Adjusted to consider those who cannot buy because of insufficient income
+    end
     
     iprb_dfc = zeros(1,nPop); % Monetary value of basic living deficit
     iprb_dfc(qb_dfc_inds) = abs(iIncome_remain(qb_dfc_inds));
@@ -147,7 +152,7 @@ for ii = 1:nPop
     if ~isempty( iWeekToRecover )
         nWeekToRecover_pop(ii) = iWeekToRecover;
     else
-        nWeekToRecover_pop(ii) = nWeek_max;
+        nWeekToRecover_pop(ii) = size(loss_rem_hist,1);
     end
 end
 

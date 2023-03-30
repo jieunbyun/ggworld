@@ -1,6 +1,5 @@
 %{
 Created: 19 March 2023
-Last update: 19 March 2023
 
 Apply test3 to R2D data
 %}
@@ -41,7 +40,7 @@ donation = 0;
 %%%%%%%%%%%%%%%%%%%%%%
 
 income_min = min(R2D.myWeeklyIncome); alp_min = 0.5; q_min = 0.8*min(R2D.myWeeklyIncome);
-q_b_fun = @(incomes) q_min + alp_min * (incomes - income_min);
+q_b_fun = @(incomes) min([q_min + alp_min * (incomes(:)') - income_min; 10*q_min*ones(1,length(incomes))], [], 1);
 
 weeks_to_recover = 8; % Not anymore increase in basic quantity and supply price.
 
@@ -76,30 +75,32 @@ result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_t
 result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, myLoss_sample1, q_b_fun, tq_l, inf, inf, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
 % <-- the difference is quite sensitive to "q_min"
 
-% Ban is favoured when income inequality is high
+% Ban is favoured when income inequality is high -- Not obvious
 income_thre = mean( myWeeklyIncome );
-myWeeklyIncome_ineq = zeros(1,nPop);
-% myLoss_ineq = zeros(1,nPop);
+myWeeklyIncome_eq = zeros(1,nPop);
+myLoss_sample1_eq = zeros(1,nPop);
 wealthyIncome_sum = 0;
 for iPopInd = 1:nPop
     iIncome = myWeeklyIncome(iPopInd);
     if iIncome < income_thre+0.01
-        iIncome_ineq = max([min(myWeeklyIncome), iIncome * 1.5]);
-        myWeeklyIncome_ineq(iPopInd) = iIncome_ineq;
+        iIncome_ineq = iIncome * 2;
+        myWeeklyIncome_eq(iPopInd) = iIncome_ineq;
+        myLoss_sample1_eq(iPopInd) = myLoss_sample1(iPopInd) * 2; % If loss is not adjusted together, it takes too long for wealthy people to recover.
+
 %         myLoss_ineq(iPopInd) = myLoss_sample1(iPopInd) * iIncome_ineq/iIncome;
     else
         wealthyIncome_sum = wealthyIncome_sum + iIncome;
     end
 end
-wealthy_coeff = (sum(myWeeklyIncome) - sum(myWeeklyIncome_ineq) ) / wealthyIncome_sum;
-myWeeklyIncome_ineq(~myWeeklyIncome_ineq) = myWeeklyIncome(~myWeeklyIncome_ineq) * wealthy_coeff;
-% myLoss_ineq(~myWeeklyIncome_ineq) = myLoss_sample1(~myWeeklyIncome_ineq) * wealthy_coeff;
+wealthy_coeff = (sum(myWeeklyIncome) - sum(myWeeklyIncome_eq) ) / wealthyIncome_sum;
+myWeeklyIncome_eq(~myWeeklyIncome_eq) = myWeeklyIncome(~myWeeklyIncome_eq) * wealthy_coeff;
+myLoss_sample1_eq(~myLoss_sample1_eq) = myLoss_sample1(~myLoss_sample1_eq) * wealthy_coeff;
 
 % incomeNonMinInds = ( myWeeklyIncome > min(myWeeklyIncome) );
 % myWeeklyIncome_ineq = myWeeklyIncome; myWeeklyIncome_ineq( incomeNonMinInds ) = 2*myWeeklyIncome( incomeNonMinInds );
 % myLoss_ineq = myLoss_sample1; myLoss_ineq( incomeNonMinInds ) = 2*myLoss_ineq( incomeNonMinInds ); 
-result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_sample1, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
-result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_ineq, myLoss_sample1, q_b_fun, tq_l, inf, inf, hoarding, donation );
+result_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_eq, myLoss_sample1_eq, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation );
+result_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome_eq, myLoss_sample1_eq, q_b_fun, tq_l, inf, inf, hoarding, donation );
 
 
 %% Hoarding
@@ -163,7 +164,7 @@ for iSampInd = 1:nSample
     Q_supply_lack_nWeek_Qb(iSampInd) = find( iResult_ban.Qb_lack_hist > 0, 1, 'last' );
     Q_supply_lack_nWeek_Ql(iSampInd) = find( iResult_ban.Ql_lack_hist > 0, 1, 'last' );
 
-    if ~rem( iSampInd, 100 )
+    if ~rem( iSampInd, 10 )
         save outputs/test3_R2D.mat
     end
 
@@ -186,5 +187,17 @@ hist( [nWeekRec_ban_avg(:), nWeekRec_noban_avg(:)] )
 % not depend on income levels, but it does on the average sample value (the
 % variance reduction is more prominent when the average is high, i.e. the
 % most affected populations).
+
+
+% there is no uncertainty in the following quantities (i.e. all samples are the same)
+figure;
+hist( [Qb_def_mag_ban(1,:)', Qb_def_mag_noban(1,:)'] ) 
+figure;
+scatter( myWeeklyIncome, Qb_def_mag_ban(1,:), '.' )
+hold on
+% scatter( myWeeklyIncome, Qb_def_mag_ban(1,:) + Q_supply_lack_mag_Qb(1), '.' )
+scatter( myWeeklyIncome, Qb_def_mag_noban(1,:), '.' )
+
+
 
 save outputs/test3_R2D.mat
