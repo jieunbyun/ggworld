@@ -41,21 +41,22 @@ simInput.donation = 0;
 %%%%%%%%%%%%%%%%%%%%%%
 
 income_min = min(R2D.myWeeklyIncome); alp_min = 0.5; q_min = 0.8*min(R2D.myWeeklyIncome);
-simInput.q_b_fun = @(incomes) min([q_min + alp_min * (incomes(:)') - income_min; 10*q_min*ones(1,length(incomes))], [], 1);
+simInput.q_b_fun = @(incomes) min([q_min + alp_min * (incomes(:)') - income_min; 5*q_min*ones(1,length(incomes))], [], 1);
 
 simInput.weeks_to_recover = 8; % Not anymore increase in basic quantity and supply price.
-nSample = 1e3;
+nSample = 1e2;
 
 %% Case 1 Default
 fname_out = 'default';
-simInput.dPd_b_gg = 0.2; simInput.dPd_l_gg = 0.5; simInput.nWeek_gg = 10; % price-gouging rate
+simInput.dPd_b_gg = 0.25; simInput.dPd_l_gg = 0.25; simInput.nWeek_gg = 10; % price-gouging rate
 result_def = gg.sampleRecSimul( nSample, myWeeklyIncome, myLoss_mean, myLoss_std, myMaxLoss, simInput, fname_out );
 % --> The difference of the number of recovery weeks increases with (1) the upper cap of loss and (2) SupSlope_l.
 
 %% Case 2 When pcap is too stringent compared to dPd
 fname_out_hp = 'high_dPd';
 simInput_hp = simInput;
-simInput_hp.dPd_l = 0.595; 
+simInput_hp.dPd_l = 0.6; 
+simInput_hp.dPd_b_gg = 0; simInput_hp.dPd_l_gg = 0; simInput_hp.nWeek_gg = 0;
 result_hp = gg.sampleRecSimul( nSample, myWeeklyIncome, myLoss_mean, myLoss_std, myMaxLoss, simInput_hp, fname_out_hp );
 % --> The number of recovery weeks with ban in place starts increasing when (pcap_l - dPd_l) / SupSlope_l < -0.98.
 
@@ -93,7 +94,7 @@ for iPopInd = 1:nPop
 end
 wealthy_coeff = (sum(myWeeklyIncome) - sum(myWeeklyIncome_eq) ) / wealthyIncome_sum;
 myWeeklyIncome_eq(~myWeeklyIncome_eq) = myWeeklyIncome(~myWeeklyIncome_eq) * wealthy_coeff;
-myLoss_mean_eq(~myLoss_mean_eq) = myLoss_sample1(~myLoss_mean_eq) * wealthy_coeff;
+myLoss_mean_eq(~myLoss_mean_eq) = myLoss_mean_eq(~myLoss_mean_eq) * wealthy_coeff;
 myLoss_std_eq(~myLoss_std_eq) = myLoss_std_eq(~myLoss_std_eq) * wealthy_coeff;
 myMaxLoss_eq = myWeeklyIncome_eq*20;
 

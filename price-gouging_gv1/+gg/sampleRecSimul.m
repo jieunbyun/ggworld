@@ -56,7 +56,7 @@ for iSampInd = 1:nSample
     Q_supply_lack_nWeek_Qb(iSampInd) = find( iResult_ban.Qb_lack_hist > 0, 1, 'last' );
     Q_supply_lack_nWeek_Ql(iSampInd) = find( iResult_ban.Ql_lack_hist > 0, 1, 'last' );
 
-    if ~rem( iSampInd, 100 )
+    if ~rem( iSampInd, round(nSample/10) )
 
         result.loss_pop = loss_pop(1:iSampInd,:);
         result.nWeekRec_ban = nWeekRec_ban(1:iSampInd,:);
