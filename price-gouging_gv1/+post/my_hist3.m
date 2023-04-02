@@ -13,6 +13,9 @@ for iBin_x = 1:nBin_x
     if ~( iBin_x < nBin_x )
         iVal_x_new = iVal_x_new + 1; % arbitrary number added to include the edge value
     end
+    if ~(iBin_x > 1)
+        iVal_x_new = iVal_x_new - 1; % arbitrary number subtracted to include the edge value
+    end
 
     iVal_y_old = YEdges(1);
     for jBin_y = 1:nBin_y
