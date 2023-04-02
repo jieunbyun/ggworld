@@ -1,4 +1,4 @@
-function result = sampleRecSimul( nSample, myWeeklyIncome, myLoss_mean, myLoss_std, myMaxLoss, simInput, fname_out )
+function result = sampleRecSimul( nSample, myWeeklyIncome, myLoss_mean, myLoss_std, myMaxLoss, simInput, fname_out, vName )
 
 % Unpack simulation inputs
 SupSlope_b = simInput.SupSlope_b;  SupSlope_l = simInput.SupSlope_l;
@@ -11,6 +11,46 @@ if ~isfield( simInput, 'donation' ); donation = 0; else;  donation = simInput.do
 if ~isfield( simInput, 'dPd_b_gg' ); dPd_b_gg = 0; else; dPd_b_gg = simInput.dPd_b_gg; end
 if ~isfield( simInput, 'dPd_l_gg' ); dPd_l_gg = 0; else; dPd_l_gg = simInput.dPd_l_gg; end
 if ~isfield( simInput, 'nWeek_gg' ); nWeek_gg = 0; else; nWeek_gg = simInput.nWeek_gg; end
+
+if ~isfield( simInput, 'dQd_b_cov' )
+    dQd_b_cov = 0;
+else
+    dQd_b_cov = simInput.dQd_b_cov;
+    dQd_b_dist = makedist('Normal', dQd_b, dQd_b*dQd_b_cov);
+    dQd_b_dist = truncate( dQd_b_dist, 0, inf );
+end
+if ~isfield( simInput, 'dPd_b_cov' )
+    dPd_b_cov = 0;
+else
+    dPd_b_cov = simInput.dPd_b_cov;
+    dPd_b_dist = makedist('Normal', dPd_b, dPd_b*dPd_b_cov);
+    dPd_b_dist = truncate( dPd_b_dist, 0, inf );
+end
+if ~isfield( simInput, 'SupSlope_b_cov' )
+    SupSlope_b_cov = 0;
+else
+    SupSlope_b_cov = simInput.SupSlope_b_cov;
+    SupSlope_b_dist = makedist( 'Normal', SupSlope_b, SupSlope_b*SupSlope_b_cov );
+    SupSlope_b_dist = truncate( SupSlope_b_dist, 0, inf );
+end
+if ~isfield( simInput, 'dPd_l_cov' )
+    dPd_l_cov = 0;
+else
+    dPd_l_cov = simInput.dPd_l_cov;
+    dPd_l_dist = makedist( 'Normal', dPd_l, dPd_l*dPd_l_cov );
+    dPd_l_dist = truncate( dPd_l_dist, 0, inf );
+end
+if ~isfield( simInput, 'SupSlope_l_cov' )
+    SupSlope_l_cov = 0;
+else
+    SupSlope_l_cov = simInput.SupSlope_l_cov;
+    SupSlope_l_dist = makedist('Normal', SupSlope_l, SupSlope_l*SupSlope_l_cov);
+    SupSlope_l_dist = truncate(SupSlope_l_dist, 0, inf);
+end
+
+if nargin < 8
+    vName = '';
+end
 
 
 % Init
@@ -34,9 +74,15 @@ for iSampInd = 1:nSample
     rng(iSampInd) % To retreive sampling results
     iLoss = gg.sampleLoss( myLoss_mean, myLoss_std, myMaxLoss ); 
 
+    if ~dQd_b_cov; idQd_b = dQd_b; else; idQd_b = random( dQd_b_dist, 1 ); end
+    if ~SupSlope_b_cov; iSupSlope_b = SupSlope_b; else; iSupSlope_b = random( SupSlope_b_dist, 1 ); end
+    if ~SupSlope_l_cov; iSupSlope_l = SupSlope_l; else; iSupSlope_l = random( SupSlope_l_dist, 1 ); end
+    if ~dPd_b_cov; idPd_b = dPd_b; else; idPd_b = random(dPd_b_dist,1); end
+    if ~dPd_l_cov; idPd_l = dPd_l; else; idPd_l = random(dPd_l_dist, 1); end
+
     % Simulation
-    iResult_ban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
-    iResult_noban = gg.simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, inf, inf, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
+    iResult_ban = gg.simulation( iSupSlope_b, iSupSlope_l, idPd_b, idPd_l, idQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
+    iResult_noban = gg.simulation( iSupSlope_b, iSupSlope_l, idPd_b, idPd_l, idQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, inf, inf, 0, 0, dPd_b_gg, dPd_l_gg, nWeek_gg );
 
     % Results summary
     loss_pop(iSampInd,:) = iLoss;
@@ -70,7 +116,7 @@ for iSampInd = 1:nSample
         result.Q_supply_lack_nWeek_Qb = Q_supply_lack_nWeek_Qb(1:iSampInd); % Lack due to supply lack so applies to ban only.
         result.Q_supply_lack_nWeek_Ql = Q_supply_lack_nWeek_Ql(1:iSampInd);
         
-        save( strcat( 'outputs/', fname_out, '.mat' ), 'result', 'nSample', 'myWeeklyIncome', 'myLoss_mean', 'myLoss_std', 'myMaxLoss', 'simInput', 'fname_out' )
+        save( strcat( 'outputs/', fname_out, vName, '.mat' ), 'result', 'nSample', 'myWeeklyIncome', 'myLoss_mean', 'myLoss_std', 'myMaxLoss', 'simInput', 'fname_out', 'vName' )
     end
 
 end
@@ -89,4 +135,4 @@ result.Q_supply_lack_mag_Ql = Q_supply_lack_mag_Ql;
 result.Q_supply_lack_nWeek_Qb = Q_supply_lack_nWeek_Qb; % Lack due to supply lack so applies to ban only.
 result.Q_supply_lack_nWeek_Ql = Q_supply_lack_nWeek_Ql;
 
-save( strcat( 'outputs/', fname_out, '.mat' ), 'result', 'nSample', 'myWeeklyIncome', 'myLoss_mean', 'myLoss_std', 'myMaxLoss', 'simInput', 'fname_out' )
+save( strcat( 'outputs/', fname_out, vName, '.mat' ), 'result', 'nSample', 'myWeeklyIncome', 'myLoss_mean', 'myLoss_std', 'myMaxLoss', 'simInput', 'fname_out', 'vName' )
