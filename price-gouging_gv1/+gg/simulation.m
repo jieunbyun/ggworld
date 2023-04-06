@@ -1,4 +1,4 @@
-function result = simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, pops_income, pops_loss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg )
+function result = simulation( SupSlope_b, SupSlope_l, dPd_b, dPd_l, dQd_b, weeks_to_recover, pops_income, pops_loss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, nWeek_hd, donation, dPd_b_gg, dPd_l_gg, nWeek_gg )
 
 if nargin < 11
     pcap_b = inf; % no cap
@@ -57,14 +57,16 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
     if Prd_b > (1+pcap_b)
         Prd_b_nat = Prd_b; 
         Prd_b = (1+pcap_b);
-        dQt_b = dQt_b + hoarding;
+        if iWeek <= nWeek_hd
+            dQt_b = dQt_b + hoarding;
+        end
 
         dQt_b_sup = (pcap_b - dPd_b) / SupSlope_b; % Supply lack for basic living is not considered for price calculation (Not to double count effect of supply lack)
         Qb_lack = max([0, dQt_b-dQt_b_sup]); 
 
     else        
 
-        if iWeek < nWeek_gg % price-gouging
+        if iWeek <= nWeek_gg % price-gouging
            Prd_b = min([Prd_b + dPd_b_gg, 1+pcap_b]); 
         end
 
@@ -140,7 +142,6 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
     Prb_nat_hist = [Prb_nat_hist; Prd_b_nat];
     Ql_lack_hist = [Ql_lack_hist; Ql_lack];
     Prl_nat_hist = [Prl_nat_hist; Prd_l_nat];
-
     loss_rem(loss_rem<1) = 0;
 
 end

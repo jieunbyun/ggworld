@@ -7,6 +7,7 @@ q_b_fun = simInput.q_b_fun;  tq_l = simInput.tq_l; weeks_to_recover = simInput.w
 if ~isfield( simInput, 'pcap_b' ); pcap_b = inf; else; pcap_b = simInput.pcap_b; end
 if ~isfield( simInput, 'pcap_l' ); pcap_l = inf; else; pcap_l = simInput.pcap_l; end
 if ~isfield( simInput, 'hoarding' ); hoarding = 0; else; hoarding = simInput.hoarding; end
+if ~isfield( simInput, 'nWeek_hd' ); nWeek_hd = 0; else; nWeek_hd = simInput.nWeek_hd; end
 if ~isfield( simInput, 'donation' ); donation = 0; else;  donation = simInput.donation; end
 if ~isfield( simInput, 'dPd_b_gg' ); dPd_b_gg = 0; else; dPd_b_gg = simInput.dPd_b_gg; end
 if ~isfield( simInput, 'dPd_l_gg' ); dPd_l_gg = 0; else; dPd_l_gg = simInput.dPd_l_gg; end
@@ -67,6 +68,8 @@ Q_supply_lack_mag_Qb = zeros(nSample,1); % Lack due to supply lack so applies to
 Q_supply_lack_mag_Ql = zeros(nSample,1);
 Q_supply_lack_nWeek_Qb = zeros(nSample,1); % Lack due to supply lack so applies to ban only.
 Q_supply_lack_nWeek_Ql = zeros(nSample,1);
+dPd_b_hist = zeros(nSample,1);
+dPd_l_hist = zeros(nSample,1);
 
 % Sampling
 for iSampInd = 1:nSample
@@ -81,8 +84,8 @@ for iSampInd = 1:nSample
     if ~dPd_l_cov; idPd_l = dPd_l; else; idPd_l = random(dPd_l_dist, 1); end
 
     % Simulation
-    iResult_ban = gg.simulation( iSupSlope_b, iSupSlope_l, idPd_b, idPd_l, idQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
-    iResult_noban = gg.simulation( iSupSlope_b, iSupSlope_l, idPd_b, idPd_l, idQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, inf, inf, 0, 0, dPd_b_gg, dPd_l_gg, nWeek_gg );
+    iResult_ban = gg.simulation( iSupSlope_b, iSupSlope_l, idPd_b, idPd_l, idQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, pcap_b, pcap_l, hoarding, nWeek_hd, donation, dPd_b_gg, dPd_l_gg, nWeek_gg );
+    iResult_noban = gg.simulation( iSupSlope_b, iSupSlope_l, idPd_b, idPd_l, idQd_b, weeks_to_recover, myWeeklyIncome, iLoss, q_b_fun, tq_l, inf, inf, 0, 0, 0, dPd_b_gg, dPd_l_gg, nWeek_gg );
 
     % Results summary
     loss_pop(iSampInd,:) = iLoss;
@@ -102,6 +105,9 @@ for iSampInd = 1:nSample
     Q_supply_lack_nWeek_Qb(iSampInd) = find( iResult_ban.Qb_lack_hist > 0, 1, 'last' );
     Q_supply_lack_nWeek_Ql(iSampInd) = find( iResult_ban.Ql_lack_hist > 0, 1, 'last' );
 
+    dPd_b_hist(iSampInd) = idPd_b;
+    dPd_l_hist(iSampInd) = idPd_l;
+
     if ~rem( iSampInd, round(nSample/10) )
 
         result.loss_pop = loss_pop(1:iSampInd,:);
@@ -115,6 +121,8 @@ for iSampInd = 1:nSample
         result.Q_supply_lack_mag_Ql = Q_supply_lack_mag_Ql(1:iSampInd);
         result.Q_supply_lack_nWeek_Qb = Q_supply_lack_nWeek_Qb(1:iSampInd); % Lack due to supply lack so applies to ban only.
         result.Q_supply_lack_nWeek_Ql = Q_supply_lack_nWeek_Ql(1:iSampInd);
+        result.dPd_b_hist = dPd_b_hist(1:iSampInd);
+        result.dPd_l_hist = dPd_l_hist(1:iSampInd);
         
         save( strcat( 'outputs/', fname_out, vName, '.mat' ), 'result', 'nSample', 'myWeeklyIncome', 'myLoss_mean', 'myLoss_std', 'myMaxLoss', 'simInput', 'fname_out', 'vName' )
     end
@@ -134,5 +142,7 @@ result.Q_supply_lack_mag_Qb = Q_supply_lack_mag_Qb; % Lack due to supply lack so
 result.Q_supply_lack_mag_Ql = Q_supply_lack_mag_Ql;
 result.Q_supply_lack_nWeek_Qb = Q_supply_lack_nWeek_Qb; % Lack due to supply lack so applies to ban only.
 result.Q_supply_lack_nWeek_Ql = Q_supply_lack_nWeek_Ql;
+result.dPd_b_hist = dPd_b_hist;
+result.dPd_l_hist = dPd_l_hist;
 
 save( strcat( 'outputs/', fname_out, vName, '.mat' ), 'result', 'nSample', 'myWeeklyIncome', 'myLoss_mean', 'myLoss_std', 'myMaxLoss', 'simInput', 'fname_out', 'vName' )
