@@ -52,7 +52,7 @@ income_min = min(R2D.myWeeklyIncome); alp_min = 0.5; q_min = 0.9*min(R2D.myWeekl
 simInput.q_b_fun = @(incomes) min([q_min + alp_min * (incomes(:)') - income_min; 5*q_min*ones(1,length(incomes))], [], 1);
 
 simInput.weeks_to_recover = 15; % Not anymore increase in basic quantity and supply price.
-nSample = 1e2;
+nSample = 1e3;
 
 %% Case 1 Default
 fname_out = 'default';
