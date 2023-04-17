@@ -67,7 +67,8 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
     else        
 
         if iWeek <= nWeek_gg % price-gouging
-           Prd_b = min([Prd_b + dPd_b_gg, 1+pcap_b]); 
+           Prd_b = min([Prd_b + dPd_b_gg*(1-(iWeek-1)/nWeek_gg), 1+pcap_b]); 
+%            Prd_b = min([Prd_b + dPd_b_gg, 1+pcap_b]); 
         end
 
         Prd_b_nat = Prd_b;
@@ -128,10 +129,6 @@ while any(loss_rem > 0 ) && (iWeek < nWeek_max)
         
         loss_rem(~iPopRecovered) = loss_rem(~iPopRecovered) - iDonateTotal / sum(~iPopRecovered) / Prd_l;
         loss_rem = max( [loss_rem; zeros(size(loss_rem))] );
-    end
-
-    if iWeek > 350
-        ddd = 1;
     end
     
     % % Record
