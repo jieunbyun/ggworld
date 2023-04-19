@@ -46,7 +46,7 @@ ax.XTickLabel = Qmag_tickLabels_percent;
 
 ax.FontSize = fsz_tick;
 ax.FontName = 'Times New Roman';
-xlabel( '% to original weekly consumption', 'FontSize', fsz_label, 'FontName', 'Times New Roman' )
+xlabel( '% to original consumption', 'FontSize', fsz_label, 'FontName', 'Times New Roman' )
 clim([0,1])
 
 exportgraphics(gcf, strcat('figs/', figName, '.png'), 'Resolution', 500)
