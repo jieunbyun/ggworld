@@ -8,6 +8,8 @@ Set up small examples for calibration
 +"v4": Monte Carlo
 %}
 
+rng(2)
+
 nPop = 5;
 income_pop = [1 2 3.5 4.5 8];
 repair_pop = [3 5 10 15 20];

@@ -77,7 +77,8 @@ if sup_new_lack > 0
         pops_over = (dem_pop_actual > repair_pop_dem);
         pops_under = (dem_pop_actual < repair_pop_dem);
 
-        dem_pop_actual( pops_under ) = dem_pop_actual( pops_under ) + sum( dem_pop_actual( pops_over )-repair_pop_dem( pops_over ) ) / sum( pops_under );
+        pops_under_remaining = repair_pop_dem(pops_under) - dem_pop_actual(pops_under);
+        dem_pop_actual( pops_under ) = dem_pop_actual( pops_under ) + sum( dem_pop_actual( pops_over )-repair_pop_dem( pops_over ) )  .* ( pops_under_remaining / sum( pops_under_remaining ) );
         dem_pop_actual( pops_over ) = repair_pop_dem( pops_over );
     end
 

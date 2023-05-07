@@ -63,11 +63,11 @@ delQ_r_normal = 0.1 * sum( repair_pop ); % this amount of demand is expected in 
 w0 = 0.75; % the well-being ratio that the fulfilment of minimum demand is met (in [0,1])
 
 % etc.
-nMCS = 100;
+nMCS = 1e4;
 
 Q_hd_b = 0.3; % increase in demand for basic goods because of hoarding
 don = 0.1; % donation ratio of remaining income
-fname = 'hd3_dn0';
+fname = 'hd3_dn1';
 
 
 %% Dynamic analysis + Monte Carlo
