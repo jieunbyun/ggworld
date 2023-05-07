@@ -19,7 +19,7 @@ for iPopInd = 1:nPop
     iMin = min_dem_rats(iPopInd);
     iFul = dem_fulfil_rats(iPopInd);
 
-    if iMin < 1 + 1e-5 % 1e-5 to avoid floating issue
+    if iMin < 1 - 1e-5 % 1e-5 to avoid floating issue
 
         if iFul < iMin
             iWb = (w0/iMin) * iFul;
