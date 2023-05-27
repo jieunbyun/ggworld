@@ -10,24 +10,24 @@ rng(1)
 R2D=load('R2D_data/R2Ddata.mat');
 
 nPop = 1e4;
-pop_inds = randsample( length(R2D.myMeanRepCost), nPop, false );
 
+% assigning income and repair(loss)
+pop_inds = randsample( length(R2D.myMeanRepCost), nPop, false );
 income_pop = R2D.myWeeklyIncome(pop_inds)';
 repair_pop = R2D.myMeanRepCost(pop_inds)';
 repair_pop_std = R2D.myStdRepCost(pop_inds)';
 repair_pop_max = income_pop * 26;
 
+
+% assigning basic living cost
 income_min = min( R2D.myWeeklyIncome );
 dem_min = 0.9 * income_min; % Min. demand given a minimum income
 dem_inc_income = 0.5; % Increase in demand per increase in income
 dem_max = 10*dem_min; % Maximum demand
 dem_orig_fun = @(incomes) arrayfun( @(income1) min([dem_max, dem_min + dem_inc_income*(income1-income_min)]), incomes, 'UniformOutput', true );
-
 dem_pop_orig = dem_orig_fun(income_pop);
 % saving_pop = ( income_pop - dem_pop_orig ) * 26;
 
-% Price cap
-pcap = 0.1;
 
 % Supply-price curve 
 nWeek_disrup  = 15;
@@ -63,106 +63,259 @@ delQ_r_normal = 0.1 * sum( repair_pop ); % this amount of demand is expected in 
 w0 = 0.75; % the well-being ratio that the fulfilment of minimum demand is met (in [0,1])
 
 % etc.
-nMCS = 1e4;
+nMCS = 1e2;
 
-Q_hd_b = 0.3; % increase in demand for basic goods because of hoarding
+Q_hd_b = 0; % increase in demand for basic goods because of hoarding
 don = 0.1; % donation ratio of remaining income
 fname = 'hd3_dn1';
 
+% Price caps
+pcaps = [0.05:0.05:1.0];
+% pcaps = [10];
 
-%% Dynamic analysis + Monte Carlo
-dem_lack_abs_hist_noban = cell(nMCS,1); wbl_pop_income_hist_noban =  cell(nMCS,1); repair_pop_nWeek_noban = zeros(nPop, nMCS);
-dem_lack_abs_hist_ban =  cell(nMCS,1); wbl_pop_income_hist_ban =  cell(nMCS,1); wbl_pop_supply_hist_ban =  cell(nMCS,1); repair_pop_nWeek_ban = zeros(nPop, nMCS);
-delP_hist = zeros(nMCS,1); delP_g_hist = zeros(nMCS,1); delQ_b_hist = zeros(nMCS,1); QP_slope_hist = zeros(nMCS,1); nWeek_disrup_hist = zeros(nMCS,1);
-nWeek_avg_noban_hist = zeros(nMCS,1); nWeek_avg_ban_hist = zeros(nMCS,1);
+for np = 1:length(pcaps)
+    pcap = pcaps(np);
 
-% Monte Carlo
-for iMCS = 1:nMCS
-    disp( ['Sample ' num2str(iMCS) ' ..'] )
-
-    rng(iMCS)
-
-    repair_pop_m = repair_pop + randn( 1, nPop ) .* repair_pop_std;
-    repair_pop_m( repair_pop_m < 0 ) = 0; repair_pop_m( repair_pop_m(:) > repair_pop_max(:) ) = repair_pop_max( repair_pop_m(:) > repair_pop_max(:) );
+    %% Dynamic analysis + Monte Carlo
+    dem_lack_abs_hist_noban = cell(nMCS,1); 
+    wbl_pop_income_hist_noban =  cell(nMCS,1); 
+    repair_pop_nWeek_noban = zeros(nPop, nMCS);
+    dem_lack_abs_hist_ban =  cell(nMCS,1); 
+    wbl_pop_income_hist_ban =  cell(nMCS,1); 
+    wbl_pop_supply_hist_ban =  cell(nMCS,1); 
+    repair_pop_nWeek_ban = zeros(nPop, nMCS);
+    delP_hist = zeros(nMCS,1); 
+    delP_g_hist = zeros(nMCS,1); 
+    delQ_b_hist = zeros(nMCS,1); 
+    QP_slope_hist = zeros(nMCS,1); 
+    nWeek_disrup_hist = zeros(nMCS,1);
+    nWeek_avg_noban_hist = zeros(nMCS,1); nWeek_avg_ban_hist = zeros(nMCS,1);
     
-    nWeek_disrup_m = round( max([nWeek_disrup_bnd(1), nWeek_disrup + randn * nWeek_disrup_cov * nWeek_disrup]) );
-    nWeek_disrup_m = min( [nWeek_disrup_m, nWeek_disrup_bnd(2)] );
+    % Monte Carlo
+    for iMCS = 1:nMCS
+        rng(iMCS)
     
-    delP_m = max([delP_bnd(1), delP + randn * delP_cov * delP]);
-    delP_m = min([delP_m, delP_bnd(2)]);
-    delP_g_m = max([delP_g_bnd(1), delP_g + randn * delP_g_cov * delP_g]);
-    delP_g_m = min( [delP_g_m, delP_g_bnd(2)] );
-    delQ_b_m = max([delQ_b_bnd(1), delQ_b + randn * delQ_b_cov * delQ_b]);
-    delQ_b_m = min([delQ_b_m, delQ_b_bnd(2)]);
-    QP_slope_b_m = max([QP_slope_b_bnd(1), QP_slope_b + randn * QP_slope_b_cov * QP_slope_b]);
-    QP_slope_b_m = min( [QP_slope_b_m, QP_slope_b_bnd(2)] );
-    QP_slope_r_m = max([QP_slope_r_bnd(1), QP_slope_r + randn * QP_slope_r_cov * QP_slope_r]);
-    QP_slope_r_m = min( [QP_slope_r_m, QP_slope_r_bnd(2)] );
-    
-    % Dynamic analysis
-%     income_pop_rem_noban = income_pop+saving_pop;
-    income_pop_rem_noban = income_pop;
-    repair_pop_rem_noban = repair_pop_m;
-    
-%     income_pop_rem_ban = income_pop+saving_pop;
-    income_pop_rem_ban = income_pop;
-    repair_pop_rem_ban = repair_pop_m;
-    
-    dem_lack_abs_hist_noban_t = zeros(0,1); wbl_pop_income_hist_noban_t = zeros(0,nPop); repair_pop_nWeek_noban_t = zeros(nPop, 1);
-    dem_lack_abs_hist_ban_t = zeros(0,1); wbl_pop_income_hist_ban_t = zeros(0,nPop); wbl_pop_supply_hist_ban_t = zeros(0,nPop); repair_pop_nWeek_ban_t = zeros(nPop, 1);
-    nWeek = 0;
-    while sum( repair_pop_rem_noban ) || sum( repair_pop_rem_ban )
-    
-        nWeek = nWeek+1;
-    
-        delP_t = max([0, delP_m * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
-        delP_g_t = max([0, delP_g_m * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
-        delQ_b_t = max([0, delQ_b_m * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
-        Q_hd_b_t = max([0, Q_hd_b * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
-    
-        if sum( repair_pop_rem_noban ) > 0
-            [dem_lack_abs_noban, wbl_pop_income_noban, wbl_pop_supply_noban, repair_pop_rem_noban, income_pop_rem_noban] = gg_v2.sim_no_cap( income_pop_rem_noban + income_pop, repair_pop_rem_noban, dem_pop_orig, delP_t, delP_g_t, delQ_b_t, QP_slope_b_m, w0, dem_min, income_pop, QP_slope_r_m, delQ_r_normal, don );
+        repair_pop_m = repair_pop + randn( 1, nPop ) .* repair_pop_std;
+        repair_pop_m( repair_pop_m < 0 ) = 0; repair_pop_m( repair_pop_m(:) > repair_pop_max(:) ) = repair_pop_max( repair_pop_m(:) > repair_pop_max(:) );
         
-            dem_lack_abs_hist_noban_t = [dem_lack_abs_hist_noban_t; dem_lack_abs_noban];
-            wbl_pop_income_hist_noban_t = [wbl_pop_income_hist_noban_t; wbl_pop_income_noban];
-            repair_pop_nWeek_noban_t( (repair_pop_m(:)>0) & ~repair_pop_nWeek_noban_t(:) & ~repair_pop_rem_noban(:) ) = nWeek;
+        nWeek_disrup_m = round( max([nWeek_disrup_bnd(1), nWeek_disrup + randn * nWeek_disrup_cov * nWeek_disrup]) );
+        nWeek_disrup_m = min( [nWeek_disrup_m, nWeek_disrup_bnd(2)] );
+        
+        delP_m = max([delP_bnd(1), delP + randn * delP_cov * delP]);
+        delP_m = min([delP_m, delP_bnd(2)]);
+        delP_g_m = max([delP_g_bnd(1), delP_g + randn * delP_g_cov * delP_g]);
+        delP_g_m = min( [delP_g_m, delP_g_bnd(2)] );
+        delQ_b_m = max([delQ_b_bnd(1), delQ_b + randn * delQ_b_cov * delQ_b]);
+        delQ_b_m = min([delQ_b_m, delQ_b_bnd(2)]);
+        QP_slope_b_m = max([QP_slope_b_bnd(1), QP_slope_b + randn * QP_slope_b_cov * QP_slope_b]);
+        QP_slope_b_m = min( [QP_slope_b_m, QP_slope_b_bnd(2)] );
+        QP_slope_r_m = max([QP_slope_r_bnd(1), QP_slope_r + randn * QP_slope_r_cov * QP_slope_r]);
+        QP_slope_r_m = min( [QP_slope_r_m, QP_slope_r_bnd(2)] );
+        
+        % Dynamic analysis
+    %     income_pop_rem_noban = income_pop+saving_pop;
+        income_pop_rem_noban = income_pop;
+        repair_pop_rem_noban = repair_pop_m;
+        
+    %     income_pop_rem_ban = income_pop+saving_pop;
+        income_pop_rem_ban = income_pop;
+        repair_pop_rem_ban = repair_pop_m;
+        
+        week_max = 100;
+        dem_lack_abs_hist_noban_t = zeros(0,1); 
+        wbl_pop_income_hist_noban_t = zeros(week_max,nPop); 
+        repair_pop_nWeek_noban_t = zeros(nPop, 1);
+        dem_lack_abs_hist_ban_t = zeros(0,1); 
+        wbl_pop_income_hist_ban_t = zeros(week_max,nPop); 
+        wbl_pop_supply_hist_ban_t = zeros(week_max,nPop); 
+        repair_pop_nWeek_ban_t = zeros(nPop, 1);
+    
+        nWeek = 0;
+        while sum( repair_pop_rem_noban ) || sum( repair_pop_rem_ban )
+        
+            nWeek = nWeek+1;
+        
+            delP_t = max([0, delP_m * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
+            delP_g_t = max([0, delP_g_m * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
+            delQ_b_t = max([0, delQ_b_m * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
+            Q_hd_b_t = max([0, Q_hd_b * ( (nWeek_disrup_m - nWeek + 1) / nWeek_disrup_m )]);
+        
+            if sum( repair_pop_rem_noban ) > 0
+                [dem_lack_abs_noban, wbl_pop_income_noban, wbl_pop_supply_noban, repair_pop_rem_noban, income_pop_rem_noban] = gg_v2.sim_no_cap( income_pop_rem_noban + income_pop, repair_pop_rem_noban, dem_pop_orig, delP_t, delP_g_t, delQ_b_t, QP_slope_b_m, w0, dem_min, income_pop, QP_slope_r_m, delQ_r_normal, don );
+            
+                dem_lack_abs_hist_noban_t = [dem_lack_abs_hist_noban_t; dem_lack_abs_noban];
+                wbl_pop_income_hist_noban_t(nWeek,:) = wbl_pop_income_noban;
+                repair_pop_nWeek_noban_t( (repair_pop_m(:)>0) & ~repair_pop_nWeek_noban_t(:) & ~repair_pop_rem_noban(:) ) = nWeek;
+            end
+        
+            if sum( repair_pop_rem_ban ) > 0
+                [dem_lack_abs_ban, wbl_pop_income_ban, wbl_pop_supply_ban, repair_pop_rem_ban, income_pop_rem_ban] = gg_v2.sim_yes_cap( income_pop_rem_ban + income_pop, repair_pop_rem_ban, dem_pop_orig, delP_t, delP_g_t, delQ_b_t, QP_slope_b_m, w0, dem_min, income_pop, QP_slope_r_m, delQ_r_normal, don, pcap, Q_hd_b_t, delQ_b_sup_min, delQ_r_sup_min );
+               
+                dem_lack_abs_hist_ban_t = [dem_lack_abs_hist_ban_t; dem_lack_abs_ban];
+                wbl_pop_income_hist_ban_t(nWeek,:) = wbl_pop_income_ban;
+                wbl_pop_supply_hist_ban_t(nWeek,:) = wbl_pop_supply_ban;
+                repair_pop_nWeek_ban_t( (repair_pop_m(:)>0) & ~repair_pop_nWeek_ban_t(:) & ~repair_pop_rem_ban(:) ) = nWeek;
+            end
+        
         end
     
-        if sum( repair_pop_rem_ban ) > 0
-            [dem_lack_abs_ban, wbl_pop_income_ban, wbl_pop_supply_ban, repair_pop_rem_ban, income_pop_rem_ban] = gg_v2.sim_yes_cap( income_pop_rem_ban + income_pop, repair_pop_rem_ban, dem_pop_orig, delP_t, delP_g_t, delQ_b_t, QP_slope_b_m, w0, dem_min, income_pop, QP_slope_r_m, delQ_r_normal, don, pcap, Q_hd_b_t, delQ_b_sup_min, delQ_r_sup_min );
-           
-            dem_lack_abs_hist_ban_t = [dem_lack_abs_hist_ban_t; dem_lack_abs_ban];
-            wbl_pop_income_hist_ban_t = [wbl_pop_income_hist_ban_t; wbl_pop_income_ban];
-            wbl_pop_supply_hist_ban_t = [wbl_pop_supply_hist_ban_t; wbl_pop_supply_ban];
-            repair_pop_nWeek_ban_t( (repair_pop_m(:)>0) & ~repair_pop_nWeek_ban_t(:) & ~repair_pop_rem_ban(:) ) = nWeek;
+    
+        wbl_pop_income_hist_noban_t(nWeek+1:end,:)=[];
+        wbl_pop_income_hist_ban_t(nWeek+1:end,:)=[];
+        wbl_pop_supply_hist_ban_t(nWeek+1:end,:)=[];
+    
+        dem_lack_abs_hist_noban{iMCS} = dem_lack_abs_hist_noban_t;
+        wbl_pop_income_hist_noban{iMCS} = wbl_pop_income_hist_noban_t;
+        repair_pop_nWeek_noban(:,iMCS) = repair_pop_nWeek_noban_t;
+    
+        dem_lack_abs_hist_ban{iMCS} = dem_lack_abs_hist_ban_t;
+        wbl_pop_income_hist_ban{iMCS} = wbl_pop_income_hist_ban_t;
+        wbl_pop_supply_hist_ban{iMCS} = wbl_pop_supply_hist_ban_t;
+        repair_pop_nWeek_ban(:,iMCS) = repair_pop_nWeek_ban_t;
+    
+        delP_hist(iMCS) = delP_m;
+        delP_g_hist(iMCS) = delP_g_m;
+        delQ_b_hist(iMCS) = delQ_b_m;
+        QP_slope_hist(iMCS) = QP_slope_b_m;
+        nWeek_disrup_hist(iMCS) = nWeek_disrup_m;
+    
+        nWeek_avg_noban_hist(iMCS) = mean( repair_pop_nWeek_noban_t );
+        nWeek_avg_ban_hist(iMCS) = mean( repair_pop_nWeek_ban_t );
+    
+    
+        if mod(iMCS,100)==0
+            disp( ['Sample ' num2str(iMCS) ' among ' num2str(nMCS) '..'] )
+            disp( ['[Max. weeks for complete repair] No ban: ' num2str(max(repair_pop_nWeek_noban_t)) ', Ban: ' num2str(max(repair_pop_nWeek_ban_t))] )
+            disp( ['[Average weeks for complete repair] No ban: ' num2str(mean(repair_pop_nWeek_noban_t)) ', Ban: ' num2str(mean(repair_pop_nWeek_ban_t))] )
         end
     
     end
 
-    dem_lack_abs_hist_noban{iMCS} = dem_lack_abs_hist_noban_t;
-    wbl_pop_income_hist_noban{iMCS} = wbl_pop_income_hist_noban_t;
-    repair_pop_nWeek_noban(:,iMCS) = repair_pop_nWeek_noban_t;
+    %% Decision metrics
+    run test6_decision.m
 
-    dem_lack_abs_hist_ban{iMCS} = dem_lack_abs_hist_ban_t;
-    wbl_pop_income_hist_ban{iMCS} = wbl_pop_income_hist_ban_t;
-    wbl_pop_supply_hist_ban{iMCS} = wbl_pop_supply_hist_ban_t;
-    repair_pop_nWeek_ban(:,iMCS) = repair_pop_nWeek_ban_t;
-
-    delP_hist(iMCS) = delP_m;
-    delP_g_hist(iMCS) = delP_g_m;
-    delQ_b_hist(iMCS) = delQ_b_m;
-    QP_slope_hist(iMCS) = QP_slope_b_m;
-    nWeek_disrup_hist(iMCS) = nWeek_disrup_m;
-
-    nWeek_avg_noban_hist(iMCS) = mean( repair_pop_nWeek_noban_t );
-    nWeek_avg_ban_hist(iMCS) = mean( repair_pop_nWeek_ban_t );
-
-
-    disp( ['[Max. weeks for complete repair] No ban: ' num2str(max(repair_pop_nWeek_noban_t)) ', Ban: ' num2str(max(repair_pop_nWeek_ban_t))] )
-    disp( ['[Average weeks for complete repair] No ban: ' num2str(mean(repair_pop_nWeek_noban_t)) ', Ban: ' num2str(mean(repair_pop_nWeek_ban_t))] )
-
+    dm_list(np)=dm;
 end
 
 
-%% Decision metrics
-run test6_decision.m
+
+%%
+
+shortage = zeros(1,length(pcaps));
+weeksRepair = zeros(1,length(pcaps));
+wbSupply = zeros(1,length(pcaps));
+wbIncome = zeros(1,length(pcaps));
+
+shortage_std = zeros(1,length(pcaps));
+weeksRepair_std = zeros(1,length(pcaps));
+wbSupply_std = zeros(1,length(pcaps));
+wbIncome_std = zeros(1,length(pcaps));
+
+for np = 1:length(pcaps)
+    shortage(np) = dm_list(np).basic_shortage_all_ban;
+    weeksRepair(np) = dm_list(np).repair_nWeek_all_ban;
+
+    shortage_std(np) = dm_list(np).basic_shortage_all_std_ban;
+    weeksRepair_std(np) = dm_list(np).repair_nWeek_all_std_ban;
+
+    wbSupply(np) = dm_list(np).wbl_supply_all_ban;
+    wbIncome(np) = dm_list(np).wbl_income_all_ban;
+
+    wbSupply_std(np) = dm_list(np).wbl_supply_all_std_ban;
+    wbIncome_std(np) = dm_list(np).wbl_income_all_std_ban;
+end
+
+%
+% no ban case
+%
+shortage_noban = dm_list(end).basic_shortage_all_noban;
+weeksRepair_noban = dm_list(end).repair_nWeek_all_noban;
+
+shortage_noban_std = dm_list(end).basic_shortage_all_std_noban;
+weeksRepair_noban_std= dm_list(end).repair_nWeek_all_std_noban;
+
+wbSupply_noban = 0;
+wbIncome_noban = dm_list(end).wbl_all_noban;
+
+wbSupply_noban_std = 0;
+wbIncome_noban_std = dm_list(end).wbl_all_std_noban;
+
+
+%%
+
+conf_p = [pcaps*100 pcaps(end:-1:1)*100] ;         
+conf_shortage = [shortage+shortage_std, shortage(end:-1:1)-shortage_std(end:-1:1)];
+conf_weeksRepair = [weeksRepair+weeksRepair_std, weeksRepair(end:-1:1)-weeksRepair_std(end:-1:1)];
+conf_wbSupply = [wbSupply+wbSupply_std, wbSupply(end:-1:1)-wbSupply_std(end:-1:1)];
+conf_wbIncome = [wbIncome+wbIncome_std, wbIncome(end:-1:1)-wbIncome_std(end:-1:1)];
+
+
+%%
+figure(1)
+
+yyaxis left
+% p = fill(conf_p,conf_shortage,'red');
+% p.FaceColor = [1 0.8 0.8];      
+% p.EdgeColor = 'none';    
+% set(p,'facealpha',0.5);
+% hold on;
+
+plot(pcaps*100, shortage); hold on; 
+errorbar(110, shortage_noban, shortage_noban_std, shortage_noban_std)
+scatter(110, shortage_noban)
+ylabel('Shortage in basic goods'); hold off;
+
+
+yyaxis right
+% p = fill(conf_p,conf_weeksRepair,'red');
+% p.FaceColor = [1 0.8 0.8];      
+% p.EdgeColor = 'none';     
+% set(p,'facealpha',0.5);
+
+hold on;
+plot(pcaps*100, weeksRepair); hold on; 
+errorbar(110, weeksRepair_noban, weeksRepair_noban_std, weeksRepair_noban_std)
+scatter(110, weeksRepair_noban)
+ylabel('Repair time (weeks)'); hold off;
+
+grid on; set(gcf,'color','w');
+xlabel("price cap (%)")
+% xlim([0 70])
+
+
+%%
+figure(2)
+
+yyaxis left
+p = fill(conf_p,conf_wbSupply,'red');
+p.FaceColor = [1 0.8 0.8];      
+p.EdgeColor = 'none';       
+set(p,'facealpha',0.2);
+hold on;
+plot(pcaps*100, wbSupply); 
+errorbar(110, wbSupply_noban, wbSupply_noban_std, wbSupply_noban_std,'o')
+ylim([0 8])
+ylabel('Well being loss - shortage')
+hold off;
+
+yyaxis right
+p = fill(conf_p,conf_wbIncome,'red');
+p.FaceColor = [0.8 0.8 1];      
+p.EdgeColor = 'none';       
+set(p,'facealpha',0.2);
+hold on;
+plot(pcaps*100, wbIncome); 
+errorbar(110, wbIncome_noban, wbIncome_noban_std,wbIncome_noban_std,'o')
+ylim([0 8])
+ylabel('Well being loss - income lack')
+hold off;
+
+grid on; set(gcf,'color','w');
+
+xlabel("price cap (%)")
+% xlim([0 70])
+hold off;
+
+%%
+save('test6_R2D_v1.mat')
+
