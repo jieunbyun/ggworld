@@ -15,6 +15,17 @@ end
 nPop = length(min_dem_rats);
 wbl = zeros(size(min_dem_rats));
 
+
+idx1 = find((min_dem_rats< 1 - 1e-5).*(dem_fulfil_rats < min_dem_rats) );
+idx2 = find((min_dem_rats< 1 - 1e-5).*(dem_fulfil_rats >= min_dem_rats) );
+
+iWb = dem_fulfil_rats;
+iWb(idx1) =  (w0./min_dem_rats(idx1)) .* dem_fulfil_rats(idx1);
+iWb(idx2) =  w0 + (1-w0)./(1-min_dem_rats(idx2)) .* (dem_fulfil_rats(idx2)-min_dem_rats(idx2));
+
+wbl = 1-iWb;
+
+%{
 for iPopInd = 1:nPop
     iMin = min_dem_rats(iPopInd);
     iFul = dem_fulfil_rats(iPopInd);
@@ -33,3 +44,5 @@ for iPopInd = 1:nPop
 
     wbl(iPopInd) = 1-iWb;
 end
+
+%}
