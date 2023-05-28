@@ -2,25 +2,42 @@
 % Total lack of basic goods (absolute price) -- this is what needs to be delivered by relief resources
 dem_lack_abs_sum.noban = cellfun( @sum, dem_lack_abs_hist_noban );
 dm.basic_shortage_all_noban = mean( dem_lack_abs_sum.noban );
+dm.basic_shortage_all_std_noban = std( dem_lack_abs_sum.noban );
+
 
 dem_lack_abs_sum.ban = cellfun( @sum, dem_lack_abs_hist_ban );
 dm.basic_shortage_all_ban = mean( dem_lack_abs_sum.ban );
+dm.basic_shortage_all_std_ban = std( dem_lack_abs_sum.ban );
 
 % Mean number or weeks for repair
-dm.repair_nWeek_all_noban = mean(repair_pop_nWeek_noban, "all");
-dm.repair_nWeek_all_ban = mean( repair_pop_nWeek_ban, "all" );
+mean_repair_pop_nWeek_noban = mean(repair_pop_nWeek_noban, 1);
+mean_repair_pop_nWeek_ban = mean(repair_pop_nWeek_ban, 1);
+
+% dm.repair_nWeek_all_noban = mean(repair_pop_nWeek_noban, "all");
+% dm.repair_nWeek_all_ban = mean( repair_pop_nWeek_ban, "all" );
+
+dm.repair_nWeek_all_noban = mean(mean_repair_pop_nWeek_noban);
+dm.repair_nWeek_all_std_noban = std(mean_repair_pop_nWeek_noban);
+dm.repair_nWeek_all_ban = mean( mean_repair_pop_nWeek_ban );
+dm.repair_nWeek_all_std_ban = std(mean_repair_pop_nWeek_ban );
 
 % Well-being loss
 wbl_income_sum_noban = cellfun( @(x) mean(sum(x)), wbl_pop_income_hist_noban );
 dm.wbl_all_noban = mean( wbl_income_sum_noban );
+dm.wbl_all_std_noban = std( wbl_income_sum_noban );
 
 wbl_income_sum_ban = cellfun( @(x) mean(sum(x)), wbl_pop_income_hist_ban );
 dm.wbl_income_all_ban = mean( wbl_income_sum_ban );
+dm.wbl_income_all_std_ban = std( wbl_income_sum_ban );
 
 wbl_supply_sum_ban = cellfun( @(x) mean(sum(x)), wbl_pop_supply_hist_ban );
 dm.wbl_supply_all_ban = mean( wbl_supply_sum_ban );
+dm.wbl_supply_all_std_ban = std( wbl_supply_sum_ban );
+
+
 
 dm.wbl_all_ban = dm.wbl_income_all_ban + dm.wbl_supply_all_ban;
+dm.wbl_all_std_ban = std( wbl_supply_sum_ban + wbl_income_sum_ban);
 
 %% Worst scenarios
 worst_ratio_samp = 0.05; worst_ratio_pop = 0.2;
