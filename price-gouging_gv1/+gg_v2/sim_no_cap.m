@@ -1,7 +1,5 @@
 function [dem_lack_abs, wbl_pop_income, wbl_pop_supply, repair_pop_rem_new, income_pop_rem_new] = sim_no_cap( income_pop_rem, repair_pop_rem, dem_pop_orig, delP, delP_g, delQ_b, QP_slope_b, w0, dem_min, income_pop, QP_slope_r, delQ_r_normal, don )
 
-hoarding_on =1;
-
 % % Basic goods
 % Price increase 
 delP_b_new = delP + delQ_b*QP_slope_b+ delP_g ;
