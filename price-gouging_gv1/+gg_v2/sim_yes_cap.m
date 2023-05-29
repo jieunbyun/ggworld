@@ -1,4 +1,4 @@
-function [dem_lack_abs, wbl_pop_income, wbl_pop_supply, repair_pop_rem_new, income_pop_rem_new] = sim_yes_cap( income_pop_rem, repair_pop_rem, dem_pop_orig, delP, delP_g, delQ_b, QP_slope_b, w0, dem_min, income_pop, QP_slope_r, delQ_r_normal, don, pcap, Q_hd_b, delQ_b_sup_min, delQ_r_sup_min )
+function [dem_lack_abs, wbl_pop_income, wbl_pop_supply, dem_lack_pop, repair_pop_rem_new, income_pop_rem_new] = sim_yes_cap( income_pop_rem, repair_pop_rem, dem_pop_orig, delP, delP_g, delQ_b, QP_slope_b, w0, dem_min, income_pop, QP_slope_r, delQ_r_normal, don, pcap, Q_hd_b, delQ_b_sup_min, delQ_r_sup_min )
 
 % % Basic goods
 % Price increase 
@@ -16,7 +16,7 @@ dem_pop_new = (1+delP_b_new) * (1 + delQ_b + Q_hd_b) * dem_pop_orig;
 dem_pop_afford = dem_pop_new; dem_pop_afford( dem_pop_new > income_pop_rem ) = income_pop_rem( dem_pop_new > income_pop_rem );
 
 % How much can be supplied to each person
-sup_pop_new = (1+delP_b_new) * (1+supply_b_new) / (1 + delQ_b + Q_hd_b) * dem_pop_orig;
+sup_pop_new = (1+supply_b_new) / (1 + delQ_b + Q_hd_b) * dem_pop_new;
 sup_new_sum = sum(sup_pop_new);
 sup_new_lack = sum(dem_pop_afford) - sup_new_sum;
 if sup_new_lack > 0
