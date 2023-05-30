@@ -311,25 +311,27 @@ end
 close all;
 
 pcaps_perc = pcaps*100;
-myPlot(1,pcaps_perc,shortage,weeksRepair,[],[],"Price cap (%)",'Shortage in basic goods','Repair time (weeks)');% title("All population")
-myPlot(2,pcaps_perc,wbSupply,wbIncome,wbSupply_std,wbIncome_std,"Price cap (%)",'Well being loss - supply shortage','Well being loss - price increase');% title("All population")
-myPlot(3,pcaps_perc,shortage_worst,weeksRepair_worst,[],[],"Price cap (%)",'Shortage in basic goods','Repair time (weeks)');% title("95% percentile person")
-myPlot(4,pcaps_perc,wbSupply_worst,wbIncome_worst,wbSupply_worst_std,wbIncome_worst_std,"Price cap (%)",'Well being loss - supply shortage','Well being loss - price increase');% title("95% percentile person")
-myPlot(5,pcaps_perc,shortage_worst2,weeksRepair_worst2,[],[],"Price cap (%)",'Shortage in basic goods','Repair time (weeks)');% title("95% percentile situation")
-myPlot(6,pcaps_perc,wbSupply_worst2,wbIncome_worst2,wbSupply_worst_std2,wbIncome_worst_std2,"Price cap (%)",'Well being loss - supply shortage','Well being loss - price increase'); %title("95% percentile situation")
+myPlot(1,pcaps_perc,shortage,weeksRepair,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[3800 1.42e4], [7 18.2]);% title("All population") -- Average
+myPlot(2,pcaps_perc,wbSupply,wbIncome,wbSupply_std,wbIncome_std,"Price cap (%)",{'Cumulative well being loss', '- supply shortage'},{'Cumulative well being loss', '- price increase'}, [0, 5], [0, 5]);% title("All population")
+myPlot(3,pcaps_perc,shortage_worst,weeksRepair_worst,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[0.49e4 4.3e4],[14 67.9]);% title("95% percentile person")
+myPlot(4,pcaps_perc,wbSupply_worst,wbIncome_worst,wbSupply_worst_std,wbIncome_worst_std,"Price cap (%)",{'Cumulative well being loss', '- supply shortage'},{'Cumulative well being loss', '- price increase'}, [0,10],[0,12]);% title("95% percentile person")
+myPlot(5,pcaps_perc,shortage_worst2,weeksRepair_worst2,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'}, [0.49e4 4.3e4], [14 67.9]);% title("95% percentile situation")
+myPlot(6,pcaps_perc,wbSupply_worst2,wbIncome_worst2,wbSupply_worst_std2,wbIncome_worst_std2,"Price cap (%)",{'Cumulative well being loss', '- supply shortage'},{'Cumulative well being loss', '- price increase'},[0,10],[0,12]); %title("95% percentile situation")
 % save('DonHoard')
-save('noDonHoard')
+% save('noDonHoard')
 
 %%
-% %{
+%{
 % When DonHoard loaded
-% figure(1); exportgraphics(gcf, 'figs/Fig_1a_s1e3.png', 'Resolution', 500);
-% figure(2); exportgraphics(gcf, 'figs/Fig_1b_s1e3.png', 'Resolution', 500);
-% figure(3); exportgraphics(gcf, 'figs/Fig_1c_s1e3.png', 'Resolution', 500);
-% figure(4); exportgraphics(gcf, 'figs/Fig_1d_s1e3.png', 'Resolution', 500);
-% figure(5); exportgraphics(gcf, 'figs/Fig_1e_s1e3.png', 'Resolution', 500);
-% figure(6); exportgraphics(gcf, 'figs/Fig_1f_s1e3.png', 'Resolution', 500);
+figure(1); exportgraphics(gcf, 'figs/Fig_1a_s1e3.png', 'Resolution', 500);
+figure(2); exportgraphics(gcf, 'figs/Fig_1b_s1e3.png', 'Resolution', 500);
+figure(3); exportgraphics(gcf, 'figs/Fig_1c_s1e3.png', 'Resolution', 500);
+figure(4); exportgraphics(gcf, 'figs/Fig_1d_s1e3.png', 'Resolution', 500);
+figure(5); exportgraphics(gcf, 'figs/Fig_1e_s1e3.png', 'Resolution', 500);
+figure(6); exportgraphics(gcf, 'figs/Fig_1f_s1e3.png', 'Resolution', 500);
+%}
 
+%{
 % When noDonHoard loaded
 figure(1); exportgraphics(gcf, 'figs/Fig_2a_s1e3.png', 'Resolution', 500);
 figure(2); exportgraphics(gcf, 'figs/Fig_2b_s1e3.png', 'Resolution', 500);
