@@ -312,11 +312,11 @@ close all;
 
 pcaps_perc = pcaps*100;
 myPlot(1,pcaps_perc,shortage,weeksRepair,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[3800 1.42e4], [7 18.2]);% title("All population") -- Average
-myPlot(2,pcaps_perc,wbSupply,wbIncome,wbSupply_std,wbIncome_std,"Price cap (%)",{'Cumulative well being loss', '- supply shortage'},{'Cumulative well being loss', '- price increase'}, [0, 5], [0, 5]);% title("All population")
+myPlot(2,pcaps_perc,wbSupply,wbIncome,wbSupply_std,wbIncome_std,"Price cap (%)",{'Cumulative well-being loss', '- supply shortage'},{'Cumulative well-being loss', '- price increase'}, [0, 5], [0, 5]);% title("All population")
 myPlot(3,pcaps_perc,shortage_worst,weeksRepair_worst,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[0.49e4 4.3e4],[14 67.9]);% title("95% percentile person")
-myPlot(4,pcaps_perc,wbSupply_worst,wbIncome_worst,wbSupply_worst_std,wbIncome_worst_std,"Price cap (%)",{'Cumulative well being loss', '- supply shortage'},{'Cumulative well being loss', '- price increase'}, [0,10],[0,12]);% title("95% percentile person")
+myPlot(4,pcaps_perc,wbSupply_worst,wbIncome_worst,wbSupply_worst_std,wbIncome_worst_std,"Price cap (%)",{'Cumulative well-being loss', '- supply shortage'},{'Cumulative well-being loss', '- price increase'}, [0,10],[0,12]);% title("95% percentile person")
 myPlot(5,pcaps_perc,shortage_worst2,weeksRepair_worst2,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'}, [0.49e4 4.3e4], [14 67.9]);% title("95% percentile situation")
-myPlot(6,pcaps_perc,wbSupply_worst2,wbIncome_worst2,wbSupply_worst_std2,wbIncome_worst_std2,"Price cap (%)",{'Cumulative well being loss', '- supply shortage'},{'Cumulative well being loss', '- price increase'},[0,10],[0,12]); %title("95% percentile situation")
+myPlot(6,pcaps_perc,wbSupply_worst2,wbIncome_worst2,wbSupply_worst_std2,wbIncome_worst_std2,"Price cap (%)",{'Cumulative well-being loss', '- supply shortage'},{'Cumulative well-being loss', '- price increase'},[0,10],[0,12]); %title("95% percentile situation")
 % save('DonHoard')
 % save('noDonHoard')
 
