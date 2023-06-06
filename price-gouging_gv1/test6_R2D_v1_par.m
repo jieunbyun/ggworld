@@ -64,14 +64,17 @@ delQ_r_normal = 0.1 * sum( repair_pop ); % this amount of demand is expected in 
 w0 = 0.75; % the well-being ratio that the fulfilment of minimum demand is met (in [0,1])
 
 % etc.
-nMCS = 1e3;
+% nMCS = 1e3;
+nMCS = 1e4;
 % nMCS = 1e1;
 
 % Q_hd_b = 0.3; % increase in demand for basic goods because of hoarding
 % don = 0.10; % donation ratio of remaining income
-Q_hd_b = 0; % increase in demand for basic goods because of hoarding
-don = 0; % donation ratio of remaining income
-fname = 'hd3_dn1';
+% fname = strcat('DonHoard_s1e', num2str(log10(nMCS)));
+
+Q_hd_b = 0.0; % increase in demand for basic goods because of hoarding
+don = 0.0; % donation ratio of remaining income
+fname = strcat('noDonHoard_s1e', num2str(log10(nMCS)));
 
 % Price caps
 pcaps = [0.05:0.05:0.5, 0.6:0.1:2.0];
@@ -233,8 +236,6 @@ for np = 1:length(pcaps)
     dm_list(np)=dm;
 end
 
-
-
 %% POST PROCESS
 npcaps = length(pcaps);
 % =
@@ -286,8 +287,8 @@ for np = 1:length(pcaps)
     % = 95% population
     shortage_worst(np) = dm_list(np).dem_lack_worst_pop_ban;
     weeksRepair_worst(np) = dm_list(np).repair_nWeek_all_worst_pop_ban;
-    shortage_worst_std(np) = dm_list(np).dem_lack_worst_pop_ban;
-    weeksRepair_worst_std(np) = dm_list(np).dem_lack_worst_pop_std_ban;
+    shortage_worst_std(np) = dm_list(np).dem_lack_worst_pop_std_ban;
+    weeksRepair_worst_std(np) = dm_list(np).repair_nWeek_all_worst_pop_std_ban;
      
     wbSupply_worst(np) = dm_list(np).wbl_supply_worst_pop_ban;
     wbIncome_worst(np) = dm_list(np).wbl_income_worst_pop_ban;
@@ -297,8 +298,8 @@ for np = 1:length(pcaps)
     % = 95% sample
     shortage_worst2(np) = dm_list(np).dem_lack_worst_sam_ban;
     weeksRepair_worst2(np) = dm_list(np).repair_nWeek_all_worst_sam_ban;
-    shortage_worst_std2(np) = dm_list(np).dem_lack_worst_sam_ban;
-    weeksRepair_worst_std2(np) = dm_list(np).dem_lack_worst_sam_std_ban;
+    shortage_worst_std2(np) = dm_list(np).dem_lack_worst_sam_std_ban;
+    weeksRepair_worst_std2(np) = dm_list(np).repair_nWeek_all_worst_sam_std_ban;
      
     wbSupply_worst2(np) = dm_list(np).wbl_supply_worst_sam_ban;
     wbIncome_worst2(np) = dm_list(np).wbl_income_worst_sam_ban;
@@ -311,33 +312,37 @@ end
 close all;
 
 pcaps_perc = pcaps*100;
-myPlot(1,pcaps_perc,shortage,weeksRepair,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[3800 1.42e4], [7 18.2]);% title("All population") -- Average
+save(fname)
+
+myPlot(1,pcaps_perc,shortage,weeksRepair,shortage_std,weeksRepair_std,"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[0 2.5e4], [5 39]);% title("All population") -- Average
 myPlot(2,pcaps_perc,wbSupply,wbIncome,wbSupply_std,wbIncome_std,"Price cap (%)",{'Cumulative well-being loss', '- supply shortage'},{'Cumulative well-being loss', '- price increase'}, [0, 5], [0, 5]);% title("All population")
-myPlot(3,pcaps_perc,shortage_worst,weeksRepair_worst,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[0.49e4 4.3e4],[14 67.9]);% title("95% percentile person")
+myPlot(3,pcaps_perc,shortage_worst,weeksRepair_worst,shortage_worst_std,weeksRepair_worst_std,"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'},[0 7e4], [30 77]);% title("95% percentile person")
 myPlot(4,pcaps_perc,wbSupply_worst,wbIncome_worst,wbSupply_worst_std,wbIncome_worst_std,"Price cap (%)",{'Cumulative well-being loss', '- supply shortage'},{'Cumulative well-being loss', '- price increase'}, [0,10],[0,12]);% title("95% percentile person")
-myPlot(5,pcaps_perc,shortage_worst2,weeksRepair_worst2,[],[],"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'}, [0.49e4 4.3e4], [14 67.9]);% title("95% percentile situation")
+myPlot(5,pcaps_perc,shortage_worst2,weeksRepair_worst2,shortage_worst_std2,weeksRepair_worst_std2,"Price cap (%)",{'Shortage in basic goods', '(USD per person)'},{'Repair time', '(weeks)'}, [0 6e4], [0 70]);% title("95% percentile situation")
 myPlot(6,pcaps_perc,wbSupply_worst2,wbIncome_worst2,wbSupply_worst_std2,wbIncome_worst_std2,"Price cap (%)",{'Cumulative well-being loss', '- supply shortage'},{'Cumulative well-being loss', '- price increase'},[0,10],[0,12]); %title("95% percentile situation")
 % save('DonHoard')
 % save('noDonHoard')
 
 %%
-%{
-% When DonHoard loaded
-figure(1); exportgraphics(gcf, 'figs/Fig_1a_s1e3.png', 'Resolution', 500);
-figure(2); exportgraphics(gcf, 'figs/Fig_1b_s1e3.png', 'Resolution', 500);
-figure(3); exportgraphics(gcf, 'figs/Fig_1c_s1e3.png', 'Resolution', 500);
-figure(4); exportgraphics(gcf, 'figs/Fig_1d_s1e3.png', 'Resolution', 500);
-figure(5); exportgraphics(gcf, 'figs/Fig_1e_s1e3.png', 'Resolution', 500);
-figure(6); exportgraphics(gcf, 'figs/Fig_1f_s1e3.png', 'Resolution', 500);
-%}
+% %{
 
-%{
-% When noDonHoard loaded
-figure(1); exportgraphics(gcf, 'figs/Fig_2a_s1e3.png', 'Resolution', 500);
-figure(2); exportgraphics(gcf, 'figs/Fig_2b_s1e3.png', 'Resolution', 500);
-figure(3); exportgraphics(gcf, 'figs/Fig_2c_s1e3.png', 'Resolution', 500);
-figure(4); exportgraphics(gcf, 'figs/Fig_2d_s1e3.png', 'Resolution', 500);
-figure(5); exportgraphics(gcf, 'figs/Fig_2e_s1e3.png', 'Resolution', 500);
-figure(6); exportgraphics(gcf, 'figs/Fig_2f_s1e3.png', 'Resolution', 500);
+if ~strcmp(fname(1:2), 'no') % When DonHoard loaded
 
+    figure(1); exportgraphics(gcf, strcat('figs/Fig_1a_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(2); exportgraphics(gcf, strcat('figs/Fig_1b_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(3); exportgraphics(gcf, strcat('figs/Fig_1c_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(4); exportgraphics(gcf, strcat('figs/Fig_1d_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(5); exportgraphics(gcf, strcat('figs/Fig_1e_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(6); exportgraphics(gcf, strcat('figs/Fig_1f_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+
+else % When noDonHoard loaded
+
+    figure(1); exportgraphics(gcf, strcat('figs/Fig_2a_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(2); exportgraphics(gcf, strcat('figs/Fig_2b_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(3); exportgraphics(gcf, strcat('figs/Fig_2c_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(4); exportgraphics(gcf, strcat('figs/Fig_2d_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(5); exportgraphics(gcf, strcat('figs/Fig_2e_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+    figure(6); exportgraphics(gcf, strcat('figs/Fig_2f_s1e', num2str(log10(nMCS)), '.png'), 'Resolution', 500);
+
+end
 %}
