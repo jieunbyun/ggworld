@@ -68,13 +68,13 @@ w0 = 0.75; % the well-being ratio that the fulfilment of minimum demand is met (
 nMCS = 1e4;
 % nMCS = 1e1;
 
-% Q_hd_b = 0.3; % increase in demand for basic goods because of hoarding
-% don = 0.10; % donation ratio of remaining income
-% fname = strcat('DonHoard_s1e', num2str(log10(nMCS)));
+Q_hd_b = 0.3; % increase in demand for basic goods because of hoarding
+don = 0.10; % donation ratio of remaining income
+fname = strcat('DonHoard_s1e', num2str(log10(nMCS)));
 
-Q_hd_b = 0.0; % increase in demand for basic goods because of hoarding
-don = 0.0; % donation ratio of remaining income
-fname = strcat('noDonHoard_s1e', num2str(log10(nMCS)));
+% Q_hd_b = 0.0; % increase in demand for basic goods because of hoarding
+% don = 0.0; % donation ratio of remaining income
+% fname = strcat('noDonHoard_s1e', num2str(log10(nMCS)));
 
 % Price caps
 pcaps = [0.05:0.05:0.5, 0.6:0.1:2.0];
@@ -234,6 +234,7 @@ for np = 1:length(pcaps)
     run test6_decision_onlyBan_anal1.m
 
     dm_list(np)=dm;
+    save(fname)
 end
 
 %% POST PROCESS
