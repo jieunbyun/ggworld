@@ -5,7 +5,7 @@ Ji-Eun Byun
 Apply "test6_ex1_v4.m" to R2D data
 %}
 
-clear
+clear; close all;
 rng(1)
 tic;
 R2D=load('R2D_data/R2Ddata.mat');
@@ -64,8 +64,8 @@ delQ_r_normal = 0.1 * sum( repair_pop ); % this amount of demand is expected in 
 w0 = 0.75; % the well-being ratio that the fulfilment of minimum demand is met (in [0,1])
 
 % etc.
-% nMCS = 1e3;
-nMCS = 1e4;
+nMCS = 1e3;
+% nMCS = 1e4;
 % nMCS = 1e1;
 
 Q_hd_b = 0.3; % increase in demand for basic goods because of hoarding
@@ -82,7 +82,7 @@ pcaps = [0.05:0.05:0.5, 0.6:0.1:2.0];
 
 worst_ratio_samp = 0.05; worst_ratio_pop = 0.05;
 for np = 1:length(pcaps)
-    disp( ['Analysis ' num2str(np) ' among ' num2str(length(pcaps)) '..'] )
+    disp( ['[' fname '] Analysis ' num2str(np) ' among ' num2str(length(pcaps)) '..'] )
 
     pcap = pcaps(np);
 
@@ -103,6 +103,8 @@ for np = 1:length(pcaps)
     nWeek_max_ban_hist = zeros(nMCS,1);
     nWeek_avg_ban_hist = zeros(nMCS,1);
     repair_pop_nWeek_pop_quant_ban = zeros(nMCS,1);
+    repair_avg = zeros(nMCS,1);
+    repair_income_rat_avg = zeros(nMCS,1);
     % nWeek_avg_noban_hist = zeros(nMCS,1); nWeek_avg_ban_hist = zeros(nMCS,1);
 
     repair_pop_nWeek_ban = zeros(nPop, nMCS);
@@ -114,9 +116,24 @@ for np = 1:length(pcaps)
     mean_repair_pop_nWeek_ban = zeros(nMCS,1);
     wbl_income_sum_ban = zeros(nMCS,1);
     wbl_supply_sum_ban = zeros(nMCS,1);
+
+    wbl_income_ban_pop_quant = zeros(nMCS,1);
+    wbl_supply_ban_pop_quant = zeros(nMCS,1);
+    dem_lack_ban_pop_quant = zeros(nMCS,1);
+
+    pop_inds_worst_nWeek_income = cell(nMCS,1);
+    pop_inds_worst_nWeek_repair = cell(nMCS,1);
+    pop_inds_worst_wbl_income_income = cell(nMCS,1); 
+    pop_inds_worst_wbl_income_repair = cell(nMCS,1);
+    pop_inds_worst_wbl_supply_income = cell(nMCS,1);
+    pop_inds_worst_wbl_supply_repair = cell(nMCS,1);
+    pop_inds_worst_dem_lack_income = cell(nMCS,1);
+    pop_inds_worst_dem_lack_repair = cell(nMCS,1); 
+
     
     % Monte Carlo
     parfor iMCS = 1:nMCS
+%     for iMCS = 1:nMCS
         rng(iMCS)
     
         repair_pop_m = repair_pop + randn( 1, nPop ) .* repair_pop_std;
@@ -200,12 +217,35 @@ for np = 1:length(pcaps)
         mean_repair_pop_nWeek_ban(iMCS) = mean(repair_pop_nWeek_ban_t);
         wbl_income_sum_ban(iMCS) = mean(sum(wbl_pop_income_hist_ban_t));
         wbl_supply_sum_ban(iMCS) = mean(sum(wbl_pop_supply_hist_ban_t));
+        repair_avg(iMCS) = mean( repair_pop_m );
+        repair_income_rat_avg(iMCS) = mean( repair_pop_m ./ income_pop );
 
         repair_pop_nWeek_ban(:,iMCS) = repair_pop_nWeek_ban_t;
         wbl_income_ban_pop(:,iMCS) = sum( wbl_pop_income_hist_ban_t );
         wbl_supply_ban_pop(:, iMCS) = sum( wbl_pop_supply_hist_ban_t );
         dem_lack_ban_pop(:, iMCS) = sum( dem_lack_pop_hist_ban_t );   
         repair_pop_nWeek_pop_quant_ban(iMCS) = quantile( repair_pop_nWeek_ban_t, 1 - worst_ratio_pop );
+        wbl_income_ban_pop_quant(iMCS) = quantile( wbl_income_ban_pop(:,iMCS), 1 - worst_ratio_pop );
+        wbl_supply_ban_pop_quant(iMCS) = quantile( wbl_supply_ban_pop(:, iMCS), 1 - worst_ratio_pop );
+        dem_lack_ban_pop_quant(iMCS) = quantile( dem_lack_ban_pop(:, iMCS), 1 - worst_ratio_pop );
+
+        pop_ind_ = find( repair_pop_nWeek_ban_t == repair_pop_nWeek_pop_quant_ban(iMCS) );
+        pop_inds_worst_nWeek_income{iMCS} = income_pop( pop_ind_ );
+        pop_inds_worst_nWeek_repair{iMCS} = repair_pop_m( pop_ind_ );
+
+        pop_ind_ = find( wbl_income_ban_pop(:,iMCS) > wbl_income_ban_pop_quant(iMCS)*(1-1e-2) & wbl_income_ban_pop(:,iMCS) < wbl_income_ban_pop_quant(iMCS)*(1+1e-2) );
+        pop_inds_worst_wbl_income_income{iMCS} = income_pop( pop_ind_ );
+        pop_inds_worst_wbl_income_repair{iMCS} = repair_pop_m( pop_ind_ );
+
+        pop_ind_ = find( wbl_supply_ban_pop(:, iMCS) > wbl_supply_ban_pop_quant(iMCS)*(1-1e-2) & wbl_supply_ban_pop(:, iMCS) < wbl_supply_ban_pop_quant(iMCS)*(1+1e-2) );
+        pop_inds_worst_wbl_supply_income{iMCS} = income_pop( pop_ind_ );
+        pop_inds_worst_wbl_supply_repair{iMCS} = repair_pop_m( pop_ind_ );
+
+        pop_ind_ = find( dem_lack_ban_pop(:, iMCS) > dem_lack_ban_pop_quant(iMCS)*(1-1e-2) & dem_lack_ban_pop(:, iMCS) < dem_lack_ban_pop_quant(iMCS)*(1+1e-2) );
+        pop_inds_worst_dem_lack_income{iMCS} = income_pop( pop_ind_ );
+        pop_inds_worst_dem_lack_repair{iMCS} = repair_pop_m( pop_ind_ );
+
+
     
         delP_hist(iMCS) = delP_m;
         delP_g_hist(iMCS) = delP_g_m;
