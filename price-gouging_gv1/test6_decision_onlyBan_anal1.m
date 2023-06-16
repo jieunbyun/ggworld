@@ -80,13 +80,22 @@ dm.wbl_supply_worst_pop_std_ban = std(wbl_supply_ban_pop_quant);
 pop_inds_worst_wbl_supply_income_mat = cell2mat( pop_inds_worst_wbl_supply_income' );
 dm.wbl_supply_ban_pop_income_mean = mean( pop_inds_worst_wbl_supply_income_mat );
 dm.wbl_supply_ban_pop_income_std = std( pop_inds_worst_wbl_supply_income_mat );
+if isnan(dm.wbl_supply_ban_pop_income_mean)
+    ddd = 1;
+end
 
 pop_inds_worst_wbl_supply_repair_mat = cell2mat(pop_inds_worst_wbl_supply_repair');
 dm.wbl_supply_ban_pop_repair_mean = mean( pop_inds_worst_wbl_supply_repair_mat );
 dm.wbl_supply_ban_pop_repair_std = std( pop_inds_worst_wbl_supply_repair_mat );
+if isnan(dm.wbl_supply_ban_pop_repair_mean)
+    ddd = 1;
+end
 
 dm.wbl_supply_ban_pop_ban_rat_mean = mean( pop_inds_worst_wbl_supply_repair_mat ./ pop_inds_worst_wbl_supply_income_mat );
 dm.wbl_supply_ban_pop_ban_rat_std = std( pop_inds_worst_wbl_supply_repair_mat ./ pop_inds_worst_wbl_supply_income_mat );
+if isnan(dm.wbl_supply_ban_pop_ban_rat_mean)
+    ddd = 1;
+end
 
 wbl_supply_ban_sam_quant = quantile( wbl_supply_ban_pop', 1 - worst_ratio_pop );
 dm.wbl_supply_worst_sam_ban = mean(wbl_supply_ban_sam_quant);
