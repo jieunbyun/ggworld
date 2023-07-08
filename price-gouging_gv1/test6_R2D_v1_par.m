@@ -51,7 +51,7 @@ QP_slope_b_bnd = [0.25 0.75];
 
 QP_slope_r = QP_slope_b/(0.5*sum(income_pop)); % sum(income_pop) is used to make it insensitive to the size of population
 QP_slope_r_cov = QP_slope_b_cov;
-QP_slope_r_bnd = QP_slope_b_bnd/0.5;
+QP_slope_r_bnd = QP_slope_b_bnd/(0.5*sum(income_pop));
 
 
 delQ_b_sup_min = -0.95; % lower bound of supply (>-1)
@@ -64,9 +64,9 @@ delQ_r_normal = 0.1 * sum( repair_pop ); % this amount of demand is expected in 
 w0 = 0.75; % the well-being ratio that the fulfilment of minimum demand is met (in [0,1])
 
 % etc.
-% nMCS = 1e3;
+nMCS = 1e3;
 % nMCS = 1e4;
-nMCS = 1e1;
+% nMCS = 1e1;
 
 Q_hd_b = 0.3; % increase in demand for basic goods because of hoarding
 don = 0.10; % donation ratio of remaining income
@@ -132,8 +132,8 @@ for np = 1:length(pcaps)
 
     
     % Monte Carlo
-%     parfor iMCS = 1:nMCS
-    for iMCS = 1:nMCS
+    parfor iMCS = 1:nMCS
+%     for iMCS = 1:nMCS
         rng(iMCS)
     
         repair_pop_m = repair_pop + randn( 1, nPop ) .* repair_pop_std;
